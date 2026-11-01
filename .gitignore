@@ -1,0 +1,45 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Expo / React Native
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Native build
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+ios/Pods/
+ios/build/
+ios/DerivedData/
+*.xcworkspace/xcuserdata/
+**/build/
+*.hprof
+
+# Modeller (kod değil; manifest hariç ağır model dosyaları)
+models/**/*.onnx
+models/**/*.gguf
+models/**/*.tflite
+models/**/*.bin
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+*.keystore
+
+# Editor / OS
+.DS_Store
+.idea/
+*.swp
