@@ -1,0 +1,18 @@
+{
+  "name": "payaspect",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gizlilik odaklı, tamamen cihaz üzerinde çalışan harcama ve ödeme analiz uygulaması",
+  "license": "MIT",
+  "workspaces": [
+    "core",
+    "app"
+  ],
+  "scripts": {
+    "app:start": "npm --workspace app run start",
+    "typecheck": "tsc -p core --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
