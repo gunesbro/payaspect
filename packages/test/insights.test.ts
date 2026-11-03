@@ -5,7 +5,7 @@ import { MemoryDatabaseDriver } from "../src/db/memoryDriver.ts";
 import { openDatabase } from "../src/db/database.ts";
 import { insertAccount } from "../src/db/repositories/accounts.ts";
 import { insertTransaction } from "../src/db/repositories/transactions.ts";
-import { summarizeSpending } from "../src/db/repositories/insights.ts";
+import { getAccountBalances, summarizeSpending } from "../src/db/repositories/insights.ts";
 import type { Account, Transaction } from "../src/domain/types.ts";
 
 const TEST_KEY = "test-key-not-a-real-secret";
@@ -97,4 +97,24 @@ test("summarizeSpending returns zero for an empty database", async () => {
   assert.deepEqual(summary.byCategory, []);
   assert.deepEqual(summary.byAccount, []);
   assert.deepEqual(summary.byCurrency, []);
+});
+
+test("getAccountBalances handles income, expenses and transfers", async () => {
+  const db = await freshDb();
+  await insertAccount(db, makeAccount({ id: "acc_2", name: "Savings" }));
+
+  await insertTransaction(db, makeTx("t1", { type: "income", amount: 3000, categoryId: "sys_other" }));
+  await insertTransaction(db, makeTx("t2", { amount: 100, categoryId: "sys_groceries" }));
+  await insertTransaction(
+    db,
+    makeTx("t3", { type: "transfer", amount: 50, toAccountId: "acc_2", categoryId: null }),
+  );
+  await insertTransaction(db, makeTx("t4", { amount: 30, accountId: "acc_2", categoryId: "sys_dining" }));
+
+  const balances = await getAccountBalances(db);
+
+  assert.deepEqual(balances, [
+    { accountId: "acc_1", inflow: 3000, outflow: 150, balance: 2850 },
+    { accountId: "acc_2", inflow: 50, outflow: 30, balance: 20 },
+  ]);
 });

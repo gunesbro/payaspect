@@ -59,3 +59,56 @@ export async function summarizeSpending(
       .sort((a, b) => b.total - a.total),
   };
 }
+
+export interface AccountBalance {
+  accountId: string;
+  /** Money in: income + transfers received. */
+  inflow: number;
+  /** Money out: expenses + transfers sent. */
+  outflow: number;
+  /** Net position: inflow - outflow. */
+  balance: number;
+}
+
+/**
+ * Per-account cash position over a date range.
+ *
+ * Transfers are counted on both sides: the source loses the amount and the
+ * target gains it, so an account's net worth is preserved correctly.
+ */
+export async function getAccountBalances(
+  db: DatabaseDriver,
+  opts: SpendingOptions = {},
+): Promise<AccountBalance[]> {
+  const transactions = await listTransactions(db, { ...opts, limit: 1000 });
+  const map = new Map<string, AccountBalance>();
+
+  const entry = (accountId: string): AccountBalance => {
+    let e = map.get(accountId);
+    if (!e) {
+      e = { accountId, inflow: 0, outflow: 0, balance: 0 };
+      map.set(accountId, e);
+    }
+    return e;
+  };
+
+  for (const t of transactions) {
+    if (t.type === "income") {
+      entry(t.accountId).inflow += t.amount;
+    } else if (t.type === "expense") {
+      entry(t.accountId).outflow += t.amount;
+    } else if (t.type === "transfer" && t.toAccountId) {
+      entry(t.accountId).outflow += t.amount;
+      entry(t.toAccountId).inflow += t.amount;
+    }
+  }
+
+  return [...map.values()]
+    .map((b) => ({
+      accountId: b.accountId,
+      inflow: roundMoney(b.inflow),
+      outflow: roundMoney(b.outflow),
+      balance: roundMoney(b.inflow - b.outflow),
+    }))
+    .sort((a, b) => a.accountId.localeCompare(b.accountId));
+}
