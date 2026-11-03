@@ -26,7 +26,7 @@ PayAspect analyzes and categorizes your expenses and payments on your phone. Our
 
 ```
 payaspect/ (monorepo)
-|-- core/        # UI-independent infrastructure: domain, db, ai, parsers, currency, i18n
+|-- packages/    # UI-independent infrastructure: domain, db, ai, parsers, currency, i18n
 |-- app/         # React Native (Expo dev client) UI
 |-- models/      # model manifests (heavy files ignored)
 `-- docs/        # specs and docs
@@ -52,7 +52,7 @@ payaspect/ (monorepo)
 
 ## Contributing & Fork
 
-- **Use the infrastructure:** The `core/` package is UI-independent; use it in your own app.
+- **Use the infrastructure:** The `@payaspect/core` package is UI-independent; use it in your own app.
 - **Fork the whole project:** Fork the repo and change it as you like.
 
 ## License
@@ -89,7 +89,7 @@ PayAspect, harcamalarinizi ve odemelerinizi analiz edip siniflandiran bir mobil 
 
 ```
 payaspect/ (monorepo)
-|-- core/        # UI'dan bagimsiz altyapi: domain, db, ai, parsers, currency, i18n
+|-- packages/    # UI'dan bagimsiz altyapi: domain, db, ai, parsers, currency, i18n
 |-- app/         # React Native (Expo dev client) UI
 |-- models/      # model manifestleri (agir dosyalar ignore)
 `-- docs/        # dokumanlar
@@ -115,7 +115,7 @@ payaspect/ (monorepo)
 
 ## Katki & Fork
 
-- **Altyapiyi kullan:** `core/` paketi UI'dan bagimsizdir; kendi uygulamanizda kullanabilirsiniz.
+- **Altyapiyi kullan:** `@payaspect/core` paketi UI'dan bagimsizdir; kendi uygulamanizda kullanabilirsiniz.
 - **Tum projeyi forkla:** Repoyu forklayip dilediginiz gibi degistirin.
 
 ## Lisans

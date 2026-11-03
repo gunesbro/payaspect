@@ -14,7 +14,7 @@
     "test": "npm --workspace @payaspect/core run test"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.18.0"
   },
   "overrides": {
     "tar": "^7.5.22",

@@ -105,10 +105,6 @@ export class MemoryDatabaseDriver implements DatabaseDriver {
   _tableNames(): string[] {
     return [...this.tables.keys()].sort();
   }
-
-  _key(): string | null {
-    return this.openedKey;
-  }
 }
 
 // ---------------------------------------------------------------------------

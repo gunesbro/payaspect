@@ -51,5 +51,9 @@ function buildDate(year: number, monthIndex: number, day: number): number | null
   if (monthIndex < 0 || monthIndex > 11 || day < 1 || day > 31) return null;
   const d = new Date(year, monthIndex, day);
   if (Number.isNaN(d.getTime())) return null;
+  // Reject impossible dates that JS would silently normalize (e.g. Feb 31 -> Mar 2).
+  if (d.getFullYear() !== year || d.getMonth() !== monthIndex || d.getDate() !== day) {
+    return null;
+  }
   return d.getTime();
 }

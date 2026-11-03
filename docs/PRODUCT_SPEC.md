@@ -115,13 +115,13 @@
 
 ```
 payaspect/ (monorepo)
-├── core/        # UI'dan bağımsız: AI, OCR, DB, sınıflandırma, parsers
+├── packages/    # UI'dan bağımsız: AI, OCR, DB, sınıflandırma, parsers
 ├── app/         # React Native (Expo dev client) UI
 ├── models/      # model manifestleri (ağır dosyalar gitignore)
 └── docs/        # dokümanlar
 ```
 
-- **Test/fork ayrımı:** isteyen `core`'u kendi uygulamasında kullanır; isteyen tüm repoyu forklar.
+- **Test/fork ayrımı:** isteyen `@payaspect/core` paketini kendi uygulamasında kullanır; isteyen tüm repoyu forklar.
 - **AI:** ONNX Runtime Mobile (INT8/FP16, <50MB çekirdek), ML Kit OCR, opsiyonel llama.cpp.
 - **DB:** op-sqlite + SQLCipher.
 - **i18n:** baştan altyapı; TR + EN.
