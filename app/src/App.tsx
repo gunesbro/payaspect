@@ -13,6 +13,7 @@ import {
   listAccounts,
   listTransactions,
   summarizeSpending,
+  formatAmount,
   type Account,
   type Transaction,
 } from "@payaspect/core";
@@ -110,13 +111,13 @@ export default function App() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>PayAspect</Text>
-      <Text>Toplam harcama: {totalSpent} TRY</Text>
+      <Text>Toplam harcama: {formatAmount(totalSpent, "TRY")}</Text>
       <Text>Hesap: {accounts.length}</Text>
 
       <Text style={styles.subtitle}>İşlemler ({transactions.length})</Text>
       {transactions.map((t) => (
         <Text key={t.id}>
-          • {t.merchant ?? t.type} — {t.amount} {t.currency}
+          • {t.merchant ?? t.type} — {formatAmount(t.amount, t.currency)}
         </Text>
       ))}
 
