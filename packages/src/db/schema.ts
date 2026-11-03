@@ -11,7 +11,7 @@ export interface Migration {
   sql: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 
 /**
  * Migration 1 — initial schema.
@@ -83,6 +83,24 @@ CREATE TABLE IF NOT EXISTS meta (
 );
 `;
 
+/**
+ * Migration 2 — receipt/bank images.
+ * Files are stored on-device (encrypted at rest); only path + mime are kept.
+ */
+const MIGRATION_2 = `
+CREATE TABLE IF NOT EXISTS attachments (
+  id TEXT PRIMARY KEY NOT NULL,
+  transaction_id TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  mime TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_attachment_tx ON attachments(transaction_id);
+`;
+
 export const MIGRATIONS: readonly Migration[] = [
   { version: 1, name: "initial_schema", sql: MIGRATION_1 },
+  { version: 2, name: "attachments", sql: MIGRATION_2 },
 ];

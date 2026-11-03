@@ -11,8 +11,13 @@
     "android": {
       "package": "com.payaspect.app"
     },
-    "plugins": ["expo-secure-store"]
+    "plugins": [
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "aa1ec7ab-f7b3-4005-ac61-a96af26e4975"
+      }
+    }
   }
 }
-
-

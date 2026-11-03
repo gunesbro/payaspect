@@ -78,6 +78,16 @@ export interface Rate {
   fetchedAt: EpochMs;
 }
 
+/** A receipt/bank image attached to a transaction (stored on-device, encrypted). */
+export interface Attachment {
+  id: string;
+  transactionId: string;
+  /** On-device file path or encrypted blob reference; never a remote URL. */
+  filePath: string;
+  mime: string;
+  createdAt: EpochMs;
+}
+
 /** Result of AI category classification. */
 export interface Classification {
   categoryKey: string | null;
