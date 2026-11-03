@@ -9,7 +9,7 @@
 
 ```
 payaspect/
-├── core/                 # UI'dan bağımsız altyapı (kütüphane)
+├── packages/             # UI'dan bağımsız altyapı (kütüphane)
 │   ├── src/
 │   │   ├── db/           # şifreli SQLite, şema, migration, repository
 │   │   ├── ai/           # OCR, sınıflandırıcı, özet motoru, LLM runtime
@@ -31,8 +31,8 @@ payaspect/
 └── package.json          # workspace root
 ```
 
-- `core/` saf TypeScript + native modül köprüleri içerir, UI'dan bağımsızdır.
-- İsteyen `core/`'u kendi uygulamasında kullanır; isteyen tüm repoyu forklar.
+- `@payaspect/core` saf TypeScript + native modül köprüleri içerir, UI'dan bağımsızdır.
+- İsteyen `@payaspect/core` paketini kendi uygulamasında kullanır; isteyen tüm repoyu forklar.
 
 ---
 
@@ -159,7 +159,7 @@ payaspect/
 ---
 
 ## 7. i18n
-- Baştan altyapı; `core/src/i18n` çeviri dosyaları (tr.json, en.json).
+- Baştan altyapı; `packages/src/i18n` çeviri dosyaları (tr.json, en.json).
 - Yeni dil = yeni çeviri dosyası.
 
 ---
