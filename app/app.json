@@ -5,7 +5,14 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.payaspect.app"
+    },
+    "android": {
+      "package": "com.payaspect.app"
+    },
     "plugins": ["expo-secure-store"]
   }
 }
+
 
