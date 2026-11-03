@@ -1,4 +1,4 @@
-import type { AccountType } from "./types";
+﻿import type { AccountType } from "./types.ts";
 
 /** Budget accounts affect day-to-day spending; tracking accounts only track net worth. */
 export const BUDGET_ACCOUNT_TYPES: readonly AccountType[] = [

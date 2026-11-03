@@ -5,12 +5,13 @@
   "description": "Gizlilik odaklı, tamamen cihaz üzerinde çalışan harcama ve ödeme analiz uygulaması",
   "license": "MIT",
   "workspaces": [
-    "core",
+    "packages",
     "app"
   ],
   "scripts": {
     "app:start": "npm --workspace app run start",
-    "typecheck": "tsc -p core --noEmit"
+    "typecheck": "npm --workspace @payaspect/core run typecheck",
+    "test": "npm --workspace @payaspect/core run test"
   },
   "engines": {
     "node": ">=20"

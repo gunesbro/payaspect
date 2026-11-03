@@ -1,6 +1,9 @@
 # Node
 node_modules/
 npm-debug.log*
+
+# Local typecheck/test build output
+.test-build/
 yarn-error.log*
 .pnpm-debug.log*
 

@@ -10,9 +10,10 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/db.test.ts"
   },
   "devDependencies": {
-    "typescript": "~5.3.3"
+    "typescript": "~5.9"
   }
 }

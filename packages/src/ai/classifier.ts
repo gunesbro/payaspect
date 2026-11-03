@@ -1,4 +1,4 @@
-import type { Classification } from "../domain/types";
+﻿import type { Classification } from "../domain/types.ts";
 
 /** Options for a single classification request. */
 export interface ClassificationInput {
