@@ -1,5 +1,11 @@
 {
-  "plugins": [
-    "expo-status-bar"
-  ]
+  "expo": {
+    "name": "PayAspect",
+    "slug": "payaspect",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-secure-store"]
+  }
 }
+
