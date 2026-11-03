@@ -17,3 +17,5 @@ export * from "./db/memoryDriver.ts";
 export * from "./db/repositories/categories.ts";
 export * from "./db/repositories/accounts.ts";
 export * from "./db/repositories/transactions.ts";
+export * from "./db/repositories/rates.ts";
+export * from "./db/repositories/recurring.ts";
