@@ -10,6 +10,7 @@ export * from "./parsers/amount.ts";
 export * from "./parsers/date.ts";
 export * from "./i18n/index.ts";
 export * from "./db/driver.ts";
+export * from "./db/sql.ts";
 export * from "./db/schema.ts";
 export * from "./db/migrate.ts";
 export * from "./db/database.ts";
