@@ -1,4 +1,4 @@
-{
+const en: Record<string, string> = {
   "app.name": "PayAspect",
   "app.tagline": "Expense & Payment",
 
@@ -56,5 +56,7 @@
   "common.cancel": "Cancel",
   "common.delete": "Delete",
   "common.noData": "No data",
-  "common.search": "Search"
-}
+  "common.search": "Search",
+};
+
+export default en;

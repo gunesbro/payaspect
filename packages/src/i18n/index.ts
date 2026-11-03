@@ -1,5 +1,5 @@
-import en from "./locales/en.json" with { type: "json" };
-import tr from "./locales/tr.json" with { type: "json" };
+import en from "./locales/en.ts";
+import tr from "./locales/tr.ts";
 
 export type Locale = "en" | "tr";
 

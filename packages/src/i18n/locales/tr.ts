@@ -1,4 +1,4 @@
-{
+const tr: Record<string, string> = {
   "app.name": "PayAspect",
   "app.tagline": "Expense & Payment",
 
@@ -56,5 +56,7 @@
   "common.cancel": "İptal",
   "common.delete": "Sil",
   "common.noData": "Veri yok",
-  "common.search": "Ara"
-}
+  "common.search": "Ara",
+};
+
+export default tr;
