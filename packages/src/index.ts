@@ -4,6 +4,7 @@ export * from "./domain/types.ts";
 export * from "./domain/accounts.ts";
 export * from "./domain/categories.ts";
 export * from "./domain/recurring.ts";
+export * from "./domain/validation.ts";
 export * from "./ai/classifier.ts";
 export * from "./ai/keywordClassifier.ts";
 export * from "./parsers/amount.ts";
