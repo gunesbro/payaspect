@@ -1,6 +1,6 @@
-import type { Classification } from "../domain/types";
-import { SYSTEM_CATEGORY_KEYS } from "../domain/categories";
-import type { Classifier, ClassificationInput } from "./classifier";
+﻿import type { Classification } from "../domain/types.ts";
+import { SYSTEM_CATEGORY_KEYS } from "../domain/categories.ts";
+import type { Classifier, ClassificationInput } from "./classifier.ts";
 
 /**
  * Rule/keyword-based fallback classifier.

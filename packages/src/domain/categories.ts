@@ -1,4 +1,4 @@
-import type { Category } from "./types";
+﻿import type { Category } from "./types.ts";
 
 /**
  * System category keys (stable identifiers, used by the classifier).

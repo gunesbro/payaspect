@@ -1,4 +1,4 @@
-import type { Transaction } from "./types";
+﻿import type { Transaction } from "./types.ts";
 
 /**
  * Lightweight, rule-based recurring detection.
