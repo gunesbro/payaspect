@@ -9,6 +9,7 @@ export * from "./ai/classifier.ts";
 export * from "./ai/keywordClassifier.ts";
 export * from "./parsers/amount.ts";
 export * from "./parsers/date.ts";
+export * from "./format.ts";
 export * from "./i18n/index.ts";
 export * from "./db/driver.ts";
 export * from "./db/sql.ts";
