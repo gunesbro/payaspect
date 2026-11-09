@@ -31,6 +31,8 @@ interface AppStoreValue {
   summary: SpendingSummary | null;
   range: DateRange;
   refresh: () => Promise<void>;
+  addAccount: (account: Account) => Promise<void>;
+  addTransaction: (transaction: Transaction) => Promise<void>;
   seedSampleData: () => Promise<void>;
 }
 
@@ -46,14 +48,15 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [summary, setSummary] = useState<SpendingSummary | null>(null);
   const [range, setRange] = useState<DateRange>(() => monthRange());
 
-  const refresh = useCallback(async () => {
-    setStatus("loading");
+  const load = useCallback(async (showLoading: boolean) => {
+    if (showLoading) setStatus("loading");
     try {
       const db = await getDatabase();
       const nextRange = monthRange();
       const [nextAccounts, nextTransactions, nextSummary] = await Promise.all([
         listAccounts(db),
-        listTransactions(db, { ...nextRange, limit: 100 }),
+        // Recent transactions across all months; the dashboard filters by range.
+        listTransactions(db, { limit: 100 }),
         summarizeSpending(db, nextRange),
       ]);
 
@@ -69,9 +72,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  /** Manual refresh: shows the loading state. */
+  const refresh = useCallback(() => load(true), [load]);
+
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    void load(true);
+  }, [load]);
 
   const seedSampleData = useCallback(async () => {
     try {
@@ -79,7 +85,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
       // Keep the dev seed idempotent so repeated taps do not duplicate data.
       if ((await listAccounts(db)).length > 0) {
-        await refresh();
+        await load(false);
         return;
       }
 
@@ -150,12 +156,30 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         await insertTransaction(db, sample);
       }
 
-      await refresh();
+      await load(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
       setStatus("error");
     }
-  }, [refresh]);
+  }, [load]);
+
+  const addAccount = useCallback(
+    async (account: Account) => {
+      const db = await getDatabase();
+      await insertAccount(db, account);
+      await load(false);
+    },
+    [load],
+  );
+
+  const addTransaction = useCallback(
+    async (transaction: Transaction) => {
+      const db = await getDatabase();
+      await insertTransaction(db, transaction);
+      await load(false);
+    },
+    [load],
+  );
 
   const value = useMemo<AppStoreValue>(
     () => ({
@@ -166,9 +190,22 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       summary,
       range,
       refresh,
+      addAccount,
+      addTransaction,
       seedSampleData,
     }),
-    [status, error, accounts, transactions, summary, range, refresh, seedSampleData],
+    [
+      status,
+      error,
+      accounts,
+      transactions,
+      summary,
+      range,
+      refresh,
+      addAccount,
+      addTransaction,
+      seedSampleData,
+    ],
   );
 
   return (
