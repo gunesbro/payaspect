@@ -17,7 +17,12 @@ import {
   getTransactionById,
   insertTransaction,
   listTransactions,
+  updateTransaction,
 } from "../src/db/repositories/transactions.ts";
+import {
+  insertAttachment,
+  listAttachmentsForTransaction,
+} from "../src/db/repositories/attachments.ts";
 import { SYSTEM_CATEGORY_KEYS } from "../src/domain/categories.ts";
 import type { Account, Transaction } from "../src/domain/types.ts";
 
@@ -277,9 +282,56 @@ test("transactions can be inserted, filtered, read and deleted", async () => {
   assert.equal(tx?.isRecurring, false);
   assert.equal(tx?.source, "manual");
 
+  await insertAttachment(db, {
+    id: "att_1",
+    transactionId: "tx_2",
+    filePath: "file:///receipts/att_1.jpg",
+    mime: "image/jpeg",
+    createdAt: 1,
+  });
+
   await deleteTransaction(db, "tx_2");
   assert.equal(await getTransactionById(db, "tx_2"), null);
+  // Attachments must not survive their transaction, even without FK pragma.
+  assert.deepEqual(await listAttachmentsForTransaction(db, "tx_2"), []);
   assert.equal((await listTransactions(db)).length, 2);
+});
+
+test("transactions can be updated in place without changing identity", async () => {
+  const db = await freshDb();
+  await insertAccount(db, makeAccount());
+
+  const original = makeTransaction({ id: "tx_1" });
+  await insertTransaction(db, original);
+
+  await updateTransaction(db, {
+    ...original,
+    type: "income",
+    amount: 250,
+    currency: "USD",
+    categoryId: "sys_other",
+    merchant: null,
+    note: "corrected",
+    date: 1_700_000_100_000,
+    isRecurring: true,
+  });
+
+  assert.deepEqual(await getTransactionById(db, "tx_1"), {
+    ...original,
+    type: "income",
+    amount: 250,
+    currency: "USD",
+    categoryId: "sys_other",
+    merchant: null,
+    note: "corrected",
+    date: 1_700_000_100_000,
+    isRecurring: true,
+  });
+
+  // Updating a missing id is a no-op instead of inserting a new row.
+  await updateTransaction(db, { ...original, id: "tx_missing" });
+  assert.equal(await getTransactionById(db, "tx_missing"), null);
+  assert.equal((await listTransactions(db)).length, 1);
 });
 
 test("queries are parameterized: hostile input is stored, not executed", async () => {

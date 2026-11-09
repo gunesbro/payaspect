@@ -46,6 +46,37 @@ export async function insertTransaction(
   );
 }
 
+/**
+ * Overwrite an existing transaction in place. The row keeps its original id
+ * and created_at so history and attachments stay attached to the same record.
+ */
+export async function updateTransaction(
+  db: DatabaseDriver,
+  t: Transaction,
+): Promise<void> {
+  await db.run(
+    `UPDATE transactions
+        SET type = ?, amount = ?, currency = ?, account_id = ?, to_account_id = ?,
+            category_id = ?, date = ?, merchant = ?, note = ?, is_recurring = ?,
+            source = ?
+      WHERE id = ?`,
+    [
+      t.type,
+      t.amount,
+      t.currency,
+      t.accountId,
+      t.toAccountId ?? null,
+      t.categoryId ?? null,
+      t.date,
+      t.merchant ?? null,
+      t.note ?? null,
+      t.isRecurring ? 1 : 0,
+      t.source,
+      t.id,
+    ],
+  );
+}
+
 export interface ListTransactionsOptions {
   from?: number;
   to?: number;
@@ -100,5 +131,10 @@ export async function getTransactionById(
 }
 
 export async function deleteTransaction(db: DatabaseDriver, id: string): Promise<void> {
-  await db.run("DELETE FROM transactions WHERE id = ?", [id]);
+  // Clean up attachments explicitly so no orphaned receipt files/rows remain
+  // even if foreign-key enforcement is off (SQLite's default).
+  await db.transaction(async (tx) => {
+    await tx.run("DELETE FROM attachments WHERE transaction_id = ?", [id]);
+    await tx.run("DELETE FROM transactions WHERE id = ?", [id]);
+  });
 }

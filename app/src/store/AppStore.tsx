@@ -8,12 +8,14 @@ import {
   type ReactNode,
 } from "react";
 import {
+  deleteTransaction,
   insertAccount,
   insertTransaction,
   listAccounts,
   listTransactions,
   monthRange,
   summarizeSpending,
+  updateTransaction,
   type Account,
   type DateRange,
   type SpendingSummary,
@@ -33,6 +35,8 @@ interface AppStoreValue {
   refresh: () => Promise<void>;
   addAccount: (account: Account) => Promise<void>;
   addTransaction: (transaction: Transaction) => Promise<void>;
+  updateTransaction: (transaction: Transaction) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
   seedSampleData: () => Promise<void>;
 }
 
@@ -181,6 +185,24 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     [load],
   );
 
+  const updateTransactionAction = useCallback(
+    async (transaction: Transaction) => {
+      const db = await getDatabase();
+      await updateTransaction(db, transaction);
+      await load(false);
+    },
+    [load],
+  );
+
+  const deleteTransactionAction = useCallback(
+    async (id: string) => {
+      const db = await getDatabase();
+      await deleteTransaction(db, id);
+      await load(false);
+    },
+    [load],
+  );
+
   const value = useMemo<AppStoreValue>(
     () => ({
       status,
@@ -192,6 +214,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       refresh,
       addAccount,
       addTransaction,
+      updateTransaction: updateTransactionAction,
+      deleteTransaction: deleteTransactionAction,
       seedSampleData,
     }),
     [
@@ -204,6 +228,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       refresh,
       addAccount,
       addTransaction,
+      updateTransactionAction,
+      deleteTransactionAction,
       seedSampleData,
     ],
   );

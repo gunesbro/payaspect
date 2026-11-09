@@ -62,6 +62,12 @@ const en: Record<string, string> = {
   "accounts.invalid": "Enter a name to create the account.",
   "tx.empty": "No transactions yet",
   "tx.recent": "Recent transactions",
+  "tx.tapToEdit": "Tap a transaction to edit or delete it.",
+  "tx.edit": "Edit transaction",
+  "tx.saveChanges": "Save changes",
+  "tx.deleteTitle": "Delete transaction?",
+  "tx.deleteBody": "This removes it from this device. It cannot be undone.",
+  "tx.deleteFailed": "Could not delete the transaction.",
 
   "add.toAccount": "To account",
   "add.save": "Save transaction",
