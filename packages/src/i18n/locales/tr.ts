@@ -3,6 +3,7 @@ const tr: Record<string, string> = {
   "app.tagline": "Expense & Payment",
 
   "nav.dashboard": "Panel",
+  "nav.transactions": "İşlemler",
   "nav.add": "Ekle",
   "nav.insights": "Analiz",
   "nav.accounts": "Hesaplar",
@@ -53,7 +54,18 @@ const tr: Record<string, string> = {
   "insights.noSpending": "Bu ay harcama yok",
 
   "accounts.count": "Hesap: {count}",
+  "accounts.empty": "Henüz hesap yok",
   "tx.list": "İşlemler ({count})",
+  "tx.empty": "Henüz işlem yok",
+  "tx.recent": "Son işlemler",
+
+  "add.body": "Manuel giriş formu burada olacak. Şimdilik Ayarlar'dan örnek veri ekleyebilirsin.",
+  "insights.byCurrencyTitle": "Para birimine göre harcama",
+  "settings.language": "Dil",
+  "settings.data": "Örnek veri",
+  "settings.privacy": "Gizlilik",
+  "settings.privacyBody": "Tüm veriler bu cihazda kalır. Veritabanı SQLCipher ile şifrelenir; uygulamada analitik veya ağ erişimi yoktur.",
+  "settings.version": "Sürüm",
 
   "ocr.scanReceipt": "Fiş tara",
   "ocr.reviewSuggestions": "Önerileri gözden geçir",
@@ -64,6 +76,8 @@ const tr: Record<string, string> = {
   "common.search": "Ara",
   "common.loading": "Veritabanı açılıyor…",
   "common.error": "Hata",
+  "common.refresh": "Yenile",
+  "common.comingSoon": "Yakında",
   "dev.seedSampleData": "Örnek veri ekle",
 };
 
