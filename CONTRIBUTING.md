@@ -13,9 +13,10 @@ Thanks for your interest! PayAspect is privacy-first and fully on-device. Please
 
 1. Fork the repo and create a branch: `feat/...`, `fix/...`, `docs/...`.
 2. Make your change with tests where useful.
-3. Ensure `core` typechecks: `cd core && npm install && npx tsc --noEmit`.
-4. Open a Pull Request using the template. Describe the change and any size/perf impact.
-5. CI (typecheck + CodeQL) must pass before merge.
+3. Verify from the repo root: `npm ci`, `npm run typecheck`, `npm run test`, `npm --workspace payaspect-app run typecheck`.
+4. If you touched app code or build config, check that the app still bundles: `npm --workspace payaspect-app run bundle:check`.
+5. Open a Pull Request using the template. Describe the change and any size/perf impact.
+6. CI (typecheck, tests, Metro bundle, CodeQL) must pass before merge.
 
 ## Reporting security issues
 
