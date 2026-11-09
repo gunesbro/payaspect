@@ -59,27 +59,49 @@ interface ListRowProps {
   title: string;
   subtitle?: string;
   value?: string;
+  onPress?: () => void;
 }
 
-export function ListRow({ title, subtitle, value }: ListRowProps) {
-  return (
-    <View style={styles.row}>
+export function ListRow({ title, subtitle, value, onPress }: ListRowProps) {
+  const content = (
+    <>
       <View style={styles.rowText}>
         <Text style={styles.rowTitle}>{title}</Text>
         {subtitle ? <Text style={styles.rowSubtitle}>{subtitle}</Text> : null}
       </View>
       {value ? <Text style={styles.rowValue}>{value}</Text> : null}
-    </View>
+    </>
+  );
+
+  if (!onPress) {
+    return <View style={styles.row}>{content}</View>;
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+    >
+      {content}
+    </Pressable>
   );
 }
 
-interface PrimaryButtonProps {
+interface ActionButtonProps {
   label: string;
   onPress: () => void;
   disabled?: boolean;
 }
 
-export function PrimaryButton({ label, onPress, disabled = false }: PrimaryButtonProps) {
+type ButtonVariant = "primary" | "secondary" | "danger";
+
+function ActionButton({
+  label,
+  onPress,
+  disabled = false,
+  variant,
+}: ActionButtonProps & { variant: ButtonVariant }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -88,13 +110,36 @@ export function PrimaryButton({ label, onPress, disabled = false }: PrimaryButto
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
+        variant === "primary" && styles.buttonPrimary,
+        variant === "secondary" && styles.buttonSecondary,
+        variant === "danger" && styles.buttonDanger,
         pressed && styles.buttonPressed,
         disabled && styles.buttonDisabled,
       ]}
     >
-      <Text style={styles.buttonLabel}>{label}</Text>
+      <Text
+        style={[
+          styles.buttonLabel,
+          variant === "secondary" && styles.buttonLabelSecondary,
+          variant === "danger" && styles.buttonLabelDanger,
+        ]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
+}
+
+export function PrimaryButton(props: ActionButtonProps) {
+  return <ActionButton {...props} variant="primary" />;
+}
+
+export function SecondaryButton(props: ActionButtonProps) {
+  return <ActionButton {...props} variant="secondary" />;
+}
+
+export function DangerButton(props: ActionButtonProps) {
+  return <ActionButton {...props} variant="danger" />;
 }
 
 interface TextFieldProps {
@@ -183,16 +228,23 @@ const styles = StyleSheet.create({
   rowTitle: { fontSize: 14, fontWeight: "500", color: colors.text },
   rowSubtitle: { fontSize: 12, color: colors.muted },
   rowValue: { fontSize: 14, fontWeight: "600", color: colors.text },
+  rowPressed: { opacity: 0.6 },
   button: {
-    backgroundColor: colors.accent,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "transparent",
     paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: "center",
   },
+  buttonPrimary: { backgroundColor: colors.accent, borderColor: colors.accent },
+  buttonSecondary: { backgroundColor: colors.surface, borderColor: colors.border },
+  buttonDanger: { backgroundColor: colors.surface, borderColor: colors.danger },
   buttonPressed: { opacity: 0.85 },
   buttonDisabled: { opacity: 0.5 },
   buttonLabel: { color: "#ffffff", fontSize: 15, fontWeight: "600" },
+  buttonLabelSecondary: { color: colors.text },
+  buttonLabelDanger: { color: colors.danger },
   field: { gap: 4 },
   fieldLabel: { fontSize: 12, fontWeight: "600", color: colors.muted },
   input: {

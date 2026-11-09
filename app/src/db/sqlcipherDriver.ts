@@ -50,6 +50,10 @@ export class SqlCipherDriver implements DatabaseDriver {
     }
 
     this.db = open({ name: "payaspect.db", encryptionKey: key });
+
+    // SQLite disables foreign-key enforcement per connection by default.
+    // Enable it so the schema's ON DELETE rules (e.g. attachments) hold.
+    await this.db.execute("PRAGMA foreign_keys = ON");
   }
 
   async close(): Promise<void> {

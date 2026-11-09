@@ -62,6 +62,12 @@ const tr: Record<string, string> = {
   "accounts.invalid": "Hesap oluşturmak için bir ad gir.",
   "tx.empty": "Henüz işlem yok",
   "tx.recent": "Son işlemler",
+  "tx.tapToEdit": "Düzenlemek veya silmek için bir işleme dokun.",
+  "tx.edit": "İşlemi düzenle",
+  "tx.saveChanges": "Değişiklikleri kaydet",
+  "tx.deleteTitle": "İşlem silinsin mi?",
+  "tx.deleteBody": "Bu işlem cihazdan kaldırılır. Geri alınamaz.",
+  "tx.deleteFailed": "İşlem silinemedi.",
 
   "add.toAccount": "Hedef hesap",
   "add.save": "İşlemi kaydet",
