@@ -6,8 +6,19 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel superseded runs so pushes do not burn extra runner minutes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
+
+env:
+  # Expo CLI telemetry is opt-out; CI never sends telemetry.
+  EXPO_NO_TELEMETRY: "1"
+  # The bundle only needs local files; skip Expo's network checks.
+  EXPO_OFFLINE: "1"
 
 jobs:
   core:
@@ -18,7 +29,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npm install
+          cache: npm
+      # `npm ci` is faster than `npm install` and fails if the lockfile drifts.
+      - run: npm ci
       - run: npm run typecheck
       - run: npm run test
       - run: npm --workspace payaspect-app run typecheck
+      # Typechecking does not exercise Metro/Babel. Bundle the app so an
+      # incompatible toolchain (e.g. a Babel major) fails CI instead of
+      # shipping a broken app.
+      - name: Bundle app (Metro)
+        run: npm --workspace payaspect-app run bundle:check
