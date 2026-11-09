@@ -1,5 +1,7 @@
 version: 2
 updates:
+  # npm workspaces: one entry at the root covers packages/ and app/.
+  # Separate entries for those directories produced duplicate PRs.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -12,18 +14,13 @@ updates:
         update-types:
           - "minor"
           - "patch"
-
-  - package-ecosystem: "npm"
-    directory: "/packages"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: "npm"
-    directory: "/app"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
+    ignore:
+      # Expo SDK 58 / React Native 0.88 load Babel 7 plugins and
+      # babel-preset-expo peers on @babel/core ^7. Babel 8 is ESM-only,
+      # so hold this major until the Expo toolchain supports it.
+      - dependency-name: "@babel/core"
+        update-types:
+          - "version-update:semver-major"
 
   - package-ecosystem: "github-actions"
     directory: "/"

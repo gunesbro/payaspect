@@ -2,7 +2,7 @@
   "name": "payaspect",
   "version": "0.1.0",
   "private": true,
-  "description": "Gizlilik odaklı, tamamen cihaz üzerinde çalışan harcama ve ödeme analiz uygulaması",
+  "description": "Privacy-first expense and payment analysis app that runs entirely on-device",
   "license": "MIT",
   "workspaces": [
     "packages",
