@@ -3,6 +3,7 @@ const en: Record<string, string> = {
   "app.tagline": "Expense & Payment",
 
   "nav.dashboard": "Dashboard",
+  "nav.transactions": "Transactions",
   "nav.add": "Add",
   "nav.insights": "Insights",
   "nav.accounts": "Accounts",
@@ -53,7 +54,18 @@ const en: Record<string, string> = {
   "insights.noSpending": "No spending this month",
 
   "accounts.count": "Accounts: {count}",
+  "accounts.empty": "No accounts yet",
   "tx.list": "Transactions ({count})",
+  "tx.empty": "No transactions yet",
+  "tx.recent": "Recent transactions",
+
+  "add.body": "The manual entry form will live here. Use Settings to add sample data for now.",
+  "insights.byCurrencyTitle": "Spending by currency",
+  "settings.language": "Language",
+  "settings.data": "Sample data",
+  "settings.privacy": "Privacy",
+  "settings.privacyBody": "All data stays on this device. The database is encrypted with SQLCipher and the app has no analytics or network access.",
+  "settings.version": "Version",
 
   "ocr.scanReceipt": "Scan receipt",
   "ocr.reviewSuggestions": "Review suggestions",
@@ -64,6 +76,8 @@ const en: Record<string, string> = {
   "common.search": "Search",
   "common.loading": "Opening database…",
   "common.error": "Error",
+  "common.refresh": "Refresh",
+  "common.comingSoon": "Coming soon",
   "dev.seedSampleData": "Add sample data",
 };
 
