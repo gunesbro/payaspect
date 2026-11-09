@@ -1,5 +1,13 @@
 import type { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type TextInputProps,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../theme";
 
@@ -68,17 +76,64 @@ export function ListRow({ title, subtitle, value }: ListRowProps) {
 interface PrimaryButtonProps {
   label: string;
   onPress: () => void;
+  disabled?: boolean;
 }
 
-export function PrimaryButton({ label, onPress }: PrimaryButtonProps) {
+export function PrimaryButton({ label, onPress, disabled = false }: PrimaryButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+      style={({ pressed }) => [
+        styles.button,
+        pressed && styles.buttonPressed,
+        disabled && styles.buttonDisabled,
+      ]}
     >
       <Text style={styles.buttonLabel}>{label}</Text>
     </Pressable>
+  );
+}
+
+interface TextFieldProps {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder?: string;
+  keyboardType?: TextInputProps["keyboardType"];
+  autoCapitalize?: TextInputProps["autoCapitalize"];
+  multiline?: boolean;
+  onBlur?: () => void;
+}
+
+export function TextField({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType,
+  autoCapitalize = "none",
+  multiline = false,
+  onBlur,
+}: TextFieldProps) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput
+        accessibilityLabel={label}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.muted}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        multiline={multiline}
+        onBlur={onBlur}
+        style={[styles.input, multiline && styles.inputMultiline]}
+      />
+    </View>
   );
 }
 
@@ -136,7 +191,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonPressed: { opacity: 0.85 },
+  buttonDisabled: { opacity: 0.5 },
   buttonLabel: { color: "#ffffff", fontSize: 15, fontWeight: "600" },
+  field: { gap: 4 },
+  fieldLabel: { fontSize: 12, fontWeight: "600", color: colors.muted },
+  input: {
+    backgroundColor: colors.background,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: colors.text,
+  },
+  inputMultiline: { minHeight: 72, textAlignVertical: "top" },
   chip: {
     borderColor: colors.border,
     borderWidth: 1,

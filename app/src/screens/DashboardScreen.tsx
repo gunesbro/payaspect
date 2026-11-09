@@ -24,7 +24,9 @@ export function DashboardScreen() {
   const { accounts, transactions, summary, range, refresh } = useAppStore();
 
   const rangeLabel = `${formatDate(range.from, locale)} – ${formatDate(range.to, locale)}`;
-  const recent = transactions.slice(0, 5);
+  const recent = transactions
+    .filter((tx) => tx.date >= range.from && tx.date <= range.to)
+    .slice(0, 5);
 
   return (
     <ScreenGate>

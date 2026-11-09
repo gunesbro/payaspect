@@ -23,6 +23,7 @@ const en: Record<string, string> = {
   "tx.type.transfer": "Transfer",
   "tx.merchant": "Merchant",
   "tx.amount": "Amount",
+  "tx.currency": "Currency",
   "tx.date": "Date",
   "tx.note": "Note",
   "tx.category": "Category",
@@ -55,11 +56,19 @@ const en: Record<string, string> = {
 
   "accounts.count": "Accounts: {count}",
   "accounts.empty": "No accounts yet",
-  "tx.list": "Transactions ({count})",
+  "accounts.add": "New account",
+  "accounts.name": "Name",
+  "accounts.save": "Save account",
+  "accounts.invalid": "Enter a name to create the account.",
   "tx.empty": "No transactions yet",
   "tx.recent": "Recent transactions",
 
-  "add.body": "The manual entry form will live here. Use Settings to add sample data for now.",
+  "add.toAccount": "To account",
+  "add.save": "Save transaction",
+  "add.noAccounts": "Add an account first from the Accounts tab.",
+  "add.needTwoAccounts": "Add another account to create a transfer.",
+  "add.invalid": "Check the amount and date, then try again.",
+  "add.dateHint": "YYYY-MM-DD",
   "insights.byCurrencyTitle": "Spending by currency",
   "settings.language": "Language",
   "settings.data": "Sample data",
@@ -77,7 +86,6 @@ const en: Record<string, string> = {
   "common.loading": "Opening database…",
   "common.error": "Error",
   "common.refresh": "Refresh",
-  "common.comingSoon": "Coming soon",
   "dev.seedSampleData": "Add sample data",
 };
 

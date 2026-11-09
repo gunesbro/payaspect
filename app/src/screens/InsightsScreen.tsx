@@ -16,6 +16,7 @@ export function InsightsScreen() {
     <ScreenGate>
       <Screen>
         <Title>{t("nav.insights")}</Title>
+        <SectionTitle>{t("insights.byCurrencyTitle")}</SectionTitle>
 
         {hasSpending ? (
           summary.byCurrency.map((currency) => (
