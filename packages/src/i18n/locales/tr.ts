@@ -23,6 +23,7 @@ const tr: Record<string, string> = {
   "tx.type.transfer": "Transfer",
   "tx.merchant": "İşyeri",
   "tx.amount": "Tutar",
+  "tx.currency": "Para birimi",
   "tx.date": "Tarih",
   "tx.note": "Not",
   "tx.category": "Kategori",
@@ -55,11 +56,19 @@ const tr: Record<string, string> = {
 
   "accounts.count": "Hesap: {count}",
   "accounts.empty": "Henüz hesap yok",
-  "tx.list": "İşlemler ({count})",
+  "accounts.add": "Yeni hesap",
+  "accounts.name": "Ad",
+  "accounts.save": "Hesabı kaydet",
+  "accounts.invalid": "Hesap oluşturmak için bir ad gir.",
   "tx.empty": "Henüz işlem yok",
   "tx.recent": "Son işlemler",
 
-  "add.body": "Manuel giriş formu burada olacak. Şimdilik Ayarlar'dan örnek veri ekleyebilirsin.",
+  "add.toAccount": "Hedef hesap",
+  "add.save": "İşlemi kaydet",
+  "add.noAccounts": "Önce Hesaplar sekmesinden bir hesap ekle.",
+  "add.needTwoAccounts": "Transfer oluşturmak için başka bir hesap ekle.",
+  "add.invalid": "Tutarı ve tarihi kontrol edip tekrar dene.",
+  "add.dateHint": "YYYY-AA-GG",
   "insights.byCurrencyTitle": "Para birimine göre harcama",
   "settings.language": "Dil",
   "settings.data": "Örnek veri",
@@ -77,7 +86,6 @@ const tr: Record<string, string> = {
   "common.loading": "Veritabanı açılıyor…",
   "common.error": "Hata",
   "common.refresh": "Yenile",
-  "common.comingSoon": "Yakında",
   "dev.seedSampleData": "Örnek veri ekle",
 };
 
