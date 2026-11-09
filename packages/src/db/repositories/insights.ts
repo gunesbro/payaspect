@@ -1,11 +1,27 @@
 import type { DatabaseDriver } from "../driver.ts";
 import { listTransactions } from "./transactions.ts";
 
-export interface SpendingSummary {
+/**
+ * Spending broken down for a single currency.
+ * Amounts in different currencies are never added together.
+ */
+export interface CurrencySpendingSummary {
+  currency: string;
   total: number;
   byCategory: Array<{ categoryId: string | null; total: number }>;
   byAccount: Array<{ accountId: string; total: number }>;
-  byCurrency: Array<{ currency: string; total: number }>;
+}
+
+export interface SpendingSummary {
+  /** One entry per currency, sorted by currency code. */
+  byCurrency: CurrencySpendingSummary[];
+  /**
+   * Convenience total for single-currency datasets. `0` when there are no
+   * expenses, `null` when more than one currency is present (never mixed).
+   */
+  total: number | null;
+  /** Currency of `total`, or `null` for empty/multi-currency datasets. */
+  currency: string | null;
 }
 
 export interface SpendingOptions {
@@ -19,12 +35,19 @@ function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+interface CurrencyAccumulator {
+  total: number;
+  byCategory: Map<string | null, number>;
+  byAccount: Map<string, number>;
+}
+
 /**
  * Aggregate expenses (not income/transfers) over a date range.
  *
- * Computed in JS (rather than SQL SUM/GROUP BY) so the in-memory driver and
- * the native driver behave identically. Scans up to `listTransactions`' cap
- * (1000); pagination for larger datasets is a follow-up.
+ * Amounts are grouped per currency first, so TRY/USD/EUR totals are never
+ * mixed. Computed in JS (rather than SQL SUM/GROUP BY) so the in-memory driver
+ * and the native driver behave identically. Scans up to `listTransactions`'
+ * cap (1000); pagination for larger datasets is a follow-up.
  */
 export async function summarizeSpending(
   db: DatabaseDriver,
@@ -33,30 +56,40 @@ export async function summarizeSpending(
   const transactions = await listTransactions(db, { ...opts, limit: 1000 });
   const expenses = transactions.filter((t) => t.type === "expense");
 
-  const byCategory = new Map<string | null, number>();
-  const byAccount = new Map<string, number>();
-  const byCurrency = new Map<string, number>();
-  let total = 0;
+  const perCurrency = new Map<string, CurrencyAccumulator>();
 
   for (const t of expenses) {
+    let acc = perCurrency.get(t.currency);
+    if (!acc) {
+      acc = { total: 0, byCategory: new Map(), byAccount: new Map() };
+      perCurrency.set(t.currency, acc);
+    }
+
     const categoryKey = t.categoryId ?? null;
-    total += t.amount;
-    byCategory.set(categoryKey, (byCategory.get(categoryKey) ?? 0) + t.amount);
-    byAccount.set(t.accountId, (byAccount.get(t.accountId) ?? 0) + t.amount);
-    byCurrency.set(t.currency, (byCurrency.get(t.currency) ?? 0) + t.amount);
+    acc.total += t.amount;
+    acc.byCategory.set(categoryKey, (acc.byCategory.get(categoryKey) ?? 0) + t.amount);
+    acc.byAccount.set(t.accountId, (acc.byAccount.get(t.accountId) ?? 0) + t.amount);
   }
 
+  const byCurrency: CurrencySpendingSummary[] = [...perCurrency.entries()]
+    .map(([currency, acc]) => ({
+      currency,
+      total: roundMoney(acc.total),
+      byCategory: [...acc.byCategory.entries()]
+        .map(([categoryId, sum]) => ({ categoryId, total: roundMoney(sum) }))
+        .sort((a, b) => b.total - a.total),
+      byAccount: [...acc.byAccount.entries()]
+        .map(([accountId, sum]) => ({ accountId, total: roundMoney(sum) }))
+        .sort((a, b) => b.total - a.total),
+    }))
+    .sort((a, b) => a.currency.localeCompare(b.currency));
+
+  const single = byCurrency.length === 1 ? byCurrency[0]! : null;
+
   return {
-    total: roundMoney(total),
-    byCategory: [...byCategory.entries()]
-      .map(([categoryId, sum]) => ({ categoryId, total: roundMoney(sum) }))
-      .sort((a, b) => b.total - a.total),
-    byAccount: [...byAccount.entries()]
-      .map(([accountId, sum]) => ({ accountId, total: roundMoney(sum) }))
-      .sort((a, b) => b.total - a.total),
-    byCurrency: [...byCurrency.entries()]
-      .map(([currency, sum]) => ({ currency, total: roundMoney(sum) }))
-      .sort((a, b) => b.total - a.total),
+    byCurrency,
+    total: single ? single.total : byCurrency.length === 0 ? 0 : null,
+    currency: single ? single.currency : null,
   };
 }
 

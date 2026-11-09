@@ -14,7 +14,10 @@ import {
   listTransactions,
   summarizeSpending,
   formatAmount,
+  formatDate,
+  monthRange,
   type Account,
+  type SpendingSummary,
   type Transaction,
 } from "@payaspect/core";
 import { getDatabase } from "./db";
@@ -28,14 +31,18 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [totalSpent, setTotalSpent] = useState(0);
+  const [summary, setSummary] = useState<SpendingSummary | null>(null);
+  const [rangeLabel, setRangeLabel] = useState("");
 
   async function refresh() {
     try {
       const db = await getDatabase();
+      const range = monthRange();
+
       setAccounts(await listAccounts(db));
-      setTransactions(await listTransactions(db));
-      setTotalSpent((await summarizeSpending(db)).total);
+      setTransactions(await listTransactions(db, { ...range, limit: 100 }));
+      setSummary(await summarizeSpending(db, range));
+      setRangeLabel(`${formatDate(range.from, "tr")} – ${formatDate(range.to, "tr")}`);
       setStatus("ready");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -49,6 +56,13 @@ export default function App() {
 
   async function seedSampleData() {
     const db = await getDatabase();
+
+    // Keep the dev seed idempotent so repeated taps do not duplicate data.
+    if ((await listAccounts(db)).length > 0) {
+      await refresh();
+      return;
+    }
+
     const now = Date.now();
 
     const account: Account = {
@@ -111,7 +125,22 @@ export default function App() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>PayAspect</Text>
-      <Text>Toplam harcama: {formatAmount(totalSpent, "TRY")}</Text>
+      <Text style={styles.subtitle}>Bu ay ({rangeLabel})</Text>
+
+      {summary && summary.byCurrency.length > 0 ? (
+        summary.total != null && summary.currency ? (
+          <Text>Toplam harcama: {formatAmount(summary.total, summary.currency)}</Text>
+        ) : (
+          summary.byCurrency.map((currency) => (
+            <Text key={currency.currency}>
+              {currency.currency}: {formatAmount(currency.total, currency.currency)}
+            </Text>
+          ))
+        )
+      ) : (
+        <Text>Bu ay harcama yok</Text>
+      )}
+
       <Text>Hesap: {accounts.length}</Text>
 
       <Text style={styles.subtitle}>İşlemler ({transactions.length})</Text>

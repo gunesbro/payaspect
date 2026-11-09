@@ -6,6 +6,7 @@ import { openDatabase } from "../src/db/database.ts";
 import { insertAccount } from "../src/db/repositories/accounts.ts";
 import { insertTransaction } from "../src/db/repositories/transactions.ts";
 import { getAccountBalances, summarizeSpending } from "../src/db/repositories/insights.ts";
+import { monthRange } from "../src/domain/dateRange.ts";
 import type { Account, Transaction } from "../src/domain/types.ts";
 
 const TEST_KEY = "test-key-not-a-real-secret";
@@ -56,7 +57,7 @@ async function freshDb(): Promise<MemoryDatabaseDriver> {
   return db;
 }
 
-test("summarizeSpending totals only expenses across categories/currencies", async () => {
+test("summarizeSpending never mixes currencies", async () => {
   const db = await freshDb();
   await insertTransaction(db, makeTx("t1", { amount: 100, categoryId: "sys_groceries" }));
   await insertTransaction(db, makeTx("t2", { amount: 50, categoryId: "sys_dining" }));
@@ -65,18 +66,48 @@ test("summarizeSpending totals only expenses across categories/currencies", asyn
 
   const summary = await summarizeSpending(db);
 
-  assert.equal(summary.total, 180);
-
-  assert.deepEqual(summary.byCategory, [
-    { categoryId: "sys_groceries", total: 130 },
-    { categoryId: "sys_dining", total: 50 },
-  ]);
-
-  assert.deepEqual(summary.byAccount, [{ accountId: "acc_1", total: 180 }]);
+  // A single cross-currency total is meaningless, so it is null.
+  assert.equal(summary.total, null);
+  assert.equal(summary.currency, null);
 
   assert.deepEqual(summary.byCurrency, [
-    { currency: "TRY", total: 150 },
-    { currency: "USD", total: 30 },
+    {
+      currency: "TRY",
+      total: 150,
+      byCategory: [
+        { categoryId: "sys_groceries", total: 100 },
+        { categoryId: "sys_dining", total: 50 },
+      ],
+      byAccount: [{ accountId: "acc_1", total: 150 }],
+    },
+    {
+      currency: "USD",
+      total: 30,
+      byCategory: [{ categoryId: "sys_groceries", total: 30 }],
+      byAccount: [{ accountId: "acc_1", total: 30 }],
+    },
+  ]);
+});
+
+test("summarizeSpending exposes a total for single-currency data", async () => {
+  const db = await freshDb();
+  await insertTransaction(db, makeTx("t1", { amount: 100, categoryId: "sys_groceries" }));
+  await insertTransaction(db, makeTx("t2", { amount: 50, categoryId: "sys_dining" }));
+
+  const summary = await summarizeSpending(db);
+
+  assert.equal(summary.total, 150);
+  assert.equal(summary.currency, "TRY");
+  assert.deepEqual(summary.byCurrency, [
+    {
+      currency: "TRY",
+      total: 150,
+      byCategory: [
+        { categoryId: "sys_groceries", total: 100 },
+        { categoryId: "sys_dining", total: 50 },
+      ],
+      byAccount: [{ accountId: "acc_1", total: 150 }],
+    },
   ]);
 });
 
@@ -88,14 +119,27 @@ test("summarizeSpending respects the date range", async () => {
 
   const summary = await summarizeSpending(db, { from: 1_000, to: 2_000 });
   assert.equal(summary.total, 300);
+  assert.equal(summary.currency, "TRY");
+});
+
+test("summarizeSpending can be scoped to a calendar month", async () => {
+  const db = await freshDb();
+  const current = new Date(2026, 5, 15, 12).getTime(); // June 2026
+  const previous = new Date(2026, 4, 15, 12).getTime(); // May 2026
+
+  await insertTransaction(db, makeTx("t1", { amount: 100, date: current }));
+  await insertTransaction(db, makeTx("t2", { amount: 200, date: previous }));
+
+  const summary = await summarizeSpending(db, monthRange(current));
+  assert.equal(summary.total, 100);
+  assert.equal(summary.currency, "TRY");
 });
 
 test("summarizeSpending returns zero for an empty database", async () => {
   const db = await freshDb();
   const summary = await summarizeSpending(db);
   assert.equal(summary.total, 0);
-  assert.deepEqual(summary.byCategory, []);
-  assert.deepEqual(summary.byAccount, []);
+  assert.equal(summary.currency, null);
   assert.deepEqual(summary.byCurrency, []);
 });
 

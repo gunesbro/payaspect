@@ -1,4 +1,10 @@
-import { open, type DB, type QueryResult, type Transaction } from "@op-engineering/op-sqlite";
+import {
+  isSQLCipher,
+  open,
+  type DB,
+  type QueryResult,
+  type Transaction,
+} from "@op-engineering/op-sqlite";
 import { splitStatements } from "@payaspect/core";
 import type { DatabaseDriver, RunResult, SQLRow, SQLValue } from "@payaspect/core";
 
@@ -33,6 +39,16 @@ export class SqlCipherDriver implements DatabaseDriver {
 
   async open(key: string): Promise<void> {
     if (!key) throw new Error("A non-empty encryption key is required");
+
+    // Privacy guard: never create/read a plaintext database. If the native
+    // module was built without SQLCipher, fail loudly instead of silently
+    // storing financial data unencrypted.
+    if (!isSQLCipher()) {
+      throw new Error(
+        "SQLCipher is not enabled in this build. Refusing to open an unencrypted database.",
+      );
+    }
+
     this.db = open({ name: "payaspect.db", encryptionKey: key });
   }
 

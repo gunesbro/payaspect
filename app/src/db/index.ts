@@ -15,7 +15,12 @@ export function getDatabase(): Promise<DatabaseDriver> {
       const db = new SqlCipherDriver();
       await openDatabase(db, createKeyProvider());
       return db;
-    })();
+    })().catch((error) => {
+      // Allow a later retry (e.g. after the user fixes a build/config issue)
+      // instead of caching a rejected promise forever.
+      dbPromise = null;
+      throw error;
+    });
   }
   return dbPromise;
 }
