@@ -49,6 +49,11 @@ const en: Record<string, string> = {
   "insights.trend": "Trend",
   "insights.comparedToLastMonth": "vs last month",
   "insights.noData": "Not enough data yet",
+  "insights.thisMonth": "This month",
+  "insights.noSpending": "No spending this month",
+
+  "accounts.count": "Accounts: {count}",
+  "tx.list": "Transactions ({count})",
 
   "ocr.scanReceipt": "Scan receipt",
   "ocr.reviewSuggestions": "Review suggestions",
@@ -57,6 +62,9 @@ const en: Record<string, string> = {
   "common.delete": "Delete",
   "common.noData": "No data",
   "common.search": "Search",
+  "common.loading": "Opening database…",
+  "common.error": "Error",
+  "dev.seedSampleData": "Add sample data",
 };
 
 export default en;

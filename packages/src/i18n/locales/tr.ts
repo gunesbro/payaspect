@@ -49,6 +49,11 @@ const tr: Record<string, string> = {
   "insights.trend": "Trend",
   "insights.comparedToLastMonth": "geçen aya göre",
   "insights.noData": "Henüz yeterli veri yok",
+  "insights.thisMonth": "Bu ay",
+  "insights.noSpending": "Bu ay harcama yok",
+
+  "accounts.count": "Hesap: {count}",
+  "tx.list": "İşlemler ({count})",
 
   "ocr.scanReceipt": "Fiş tara",
   "ocr.reviewSuggestions": "Önerileri gözden geçir",
@@ -57,6 +62,9 @@ const tr: Record<string, string> = {
   "common.delete": "Sil",
   "common.noData": "Veri yok",
   "common.search": "Ara",
+  "common.loading": "Veritabanı açılıyor…",
+  "common.error": "Hata",
+  "dev.seedSampleData": "Örnek veri ekle",
 };
 
 export default tr;

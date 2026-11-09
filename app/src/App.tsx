@@ -8,13 +8,18 @@ import {
   View,
 } from "react-native";
 import {
+  createTranslator,
   insertAccount,
   insertTransaction,
   listAccounts,
   listTransactions,
   summarizeSpending,
   formatAmount,
+  formatDate,
+  monthRange,
   type Account,
+  type Locale,
+  type SpendingSummary,
   type Transaction,
 } from "@payaspect/core";
 import { getDatabase } from "./db";
@@ -22,20 +27,26 @@ import { getDatabase } from "./db";
 type Status = "loading" | "ready" | "error";
 
 const DAY = 86_400_000;
+const LOCALE: Locale = "en";
+const t = createTranslator(LOCALE);
 
 export default function App() {
   const [status, setStatus] = useState<Status>("loading");
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [totalSpent, setTotalSpent] = useState(0);
+  const [summary, setSummary] = useState<SpendingSummary | null>(null);
+  const [rangeLabel, setRangeLabel] = useState("");
 
   async function refresh() {
     try {
       const db = await getDatabase();
+      const range = monthRange();
+
       setAccounts(await listAccounts(db));
-      setTransactions(await listTransactions(db));
-      setTotalSpent((await summarizeSpending(db)).total);
+      setTransactions(await listTransactions(db, { ...range, limit: 100 }));
+      setSummary(await summarizeSpending(db, range));
+      setRangeLabel(`${formatDate(range.from, LOCALE)} – ${formatDate(range.to, LOCALE)}`);
       setStatus("ready");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -49,11 +60,18 @@ export default function App() {
 
   async function seedSampleData() {
     const db = await getDatabase();
+
+    // Keep the dev seed idempotent so repeated taps do not duplicate data.
+    if ((await listAccounts(db)).length > 0) {
+      await refresh();
+      return;
+    }
+
     const now = Date.now();
 
     const account: Account = {
       id: `acc_${now}`,
-      name: "Banka",
+      name: "Bank",
       type: "bank",
       currency: "TRY",
       isBudget: true,
@@ -76,13 +94,13 @@ export default function App() {
       {
         id: `t2_${now}`, type: "expense", amount: 45, currency: "TRY",
         accountId: account.id, toAccountId: null, categoryId: "sys_dining",
-        date: now - DAY, merchant: "Kafe", note: null, isRecurring: false,
+        date: now - DAY, merchant: "Cafe", note: null, isRecurring: false,
         source: "manual", createdAt: now - DAY,
       },
       {
         id: `t3_${now}`, type: "income", amount: 3000, currency: "TRY",
         accountId: account.id, toAccountId: null, categoryId: "sys_other",
-        date: now, merchant: "Maaş", note: null, isRecurring: false,
+        date: now, merchant: "Salary", note: null, isRecurring: false,
         source: "manual", createdAt: now,
       },
     ];
@@ -95,7 +113,7 @@ export default function App() {
     return (
       <View style={styles.center}>
         <ActivityIndicator />
-        <Text>Veritabanı açılıyor…</Text>
+        <Text>{t("common.loading")}</Text>
       </View>
     );
   }
@@ -103,7 +121,9 @@ export default function App() {
   if (status === "error") {
     return (
       <View style={styles.center}>
-        <Text style={styles.error}>Hata: {error}</Text>
+        <Text style={styles.error}>
+          {t("common.error")}: {error}
+        </Text>
       </View>
     );
   }
@@ -111,17 +131,36 @@ export default function App() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>PayAspect</Text>
-      <Text>Toplam harcama: {formatAmount(totalSpent, "TRY")}</Text>
-      <Text>Hesap: {accounts.length}</Text>
+      <Text style={styles.subtitle}>
+        {t("insights.thisMonth")} ({rangeLabel})
+      </Text>
 
-      <Text style={styles.subtitle}>İşlemler ({transactions.length})</Text>
-      {transactions.map((t) => (
-        <Text key={t.id}>
-          • {t.merchant ?? t.type} — {formatAmount(t.amount, t.currency)}
+      {summary && summary.byCurrency.length > 0 ? (
+        summary.total != null && summary.currency ? (
+          <Text>
+            {t("insights.total")}: {formatAmount(summary.total, summary.currency)}
+          </Text>
+        ) : (
+          summary.byCurrency.map((currency) => (
+            <Text key={currency.currency}>
+              {currency.currency}: {formatAmount(currency.total, currency.currency)}
+            </Text>
+          ))
+        )
+      ) : (
+        <Text>{t("insights.noSpending")}</Text>
+      )}
+
+      <Text>{t("accounts.count", { count: accounts.length })}</Text>
+
+      <Text style={styles.subtitle}>{t("tx.list", { count: transactions.length })}</Text>
+      {transactions.map((tx) => (
+        <Text key={tx.id}>
+          • {tx.merchant ?? tx.type} — {formatAmount(tx.amount, tx.currency)}
         </Text>
       ))}
 
-      <Button title="Örnek veri ekle" onPress={seedSampleData} />
+      <Button title={t("dev.seedSampleData")} onPress={seedSampleData} />
     </ScrollView>
   );
 }
