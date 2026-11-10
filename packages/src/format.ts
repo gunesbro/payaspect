@@ -39,3 +39,15 @@ export function formatDate(epochMs: number, locale: FormatLocale = "tr"): string
   const year = d.getFullYear();
   return locale === "tr" ? `${day}.${month}.${year}` : `${month}/${day}/${year}`;
 }
+
+const MONTHS_SHORT: Record<FormatLocale, readonly string[]> = {
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  tr: ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
+};
+
+/** Format an epoch-millis timestamp as a short month name (e.g. "Haz"). */
+export function formatMonthShort(epochMs: number, locale: FormatLocale = "tr"): string {
+  const d = new Date(epochMs);
+  const names = MONTHS_SHORT[locale] ?? MONTHS_SHORT.en;
+  return names[d.getMonth()] ?? "";
+}

@@ -47,6 +47,7 @@ const tr: Record<string, string> = {
   "insights.total": "Toplam harcama",
   "insights.byCategory": "Kategoriye göre",
   "insights.byAccount": "Hesaba göre",
+  "insights.topMerchants": "En çok harcanan işyerleri",
   "insights.byCurrency": "Para birimine göre",
   "insights.trend": "Trend",
   "insights.comparedToLastMonth": "geçen aya göre",

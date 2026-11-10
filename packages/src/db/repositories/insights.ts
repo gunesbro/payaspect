@@ -1,4 +1,5 @@
 import type { DatabaseDriver } from "../driver.ts";
+import { monthRange, type DateRange } from "../../domain/dateRange.ts";
 import { listTransactions } from "./transactions.ts";
 
 /**
@@ -10,6 +11,11 @@ export interface CurrencySpendingSummary {
   total: number;
   byCategory: Array<{ categoryId: string | null; total: number }>;
   byAccount: Array<{ accountId: string; total: number }>;
+  /**
+   * Expenses grouped by trimmed merchant name, sorted by total descending.
+   * Transactions without a merchant are omitted.
+   */
+  byMerchant: Array<{ merchant: string; total: number }>;
 }
 
 export interface SpendingSummary {
@@ -39,6 +45,7 @@ interface CurrencyAccumulator {
   total: number;
   byCategory: Map<string | null, number>;
   byAccount: Map<string, number>;
+  byMerchant: Map<string, number>;
 }
 
 /**
@@ -61,7 +68,12 @@ export async function summarizeSpending(
   for (const t of expenses) {
     let acc = perCurrency.get(t.currency);
     if (!acc) {
-      acc = { total: 0, byCategory: new Map(), byAccount: new Map() };
+      acc = {
+        total: 0,
+        byCategory: new Map(),
+        byAccount: new Map(),
+        byMerchant: new Map(),
+      };
       perCurrency.set(t.currency, acc);
     }
 
@@ -69,6 +81,11 @@ export async function summarizeSpending(
     acc.total += t.amount;
     acc.byCategory.set(categoryKey, (acc.byCategory.get(categoryKey) ?? 0) + t.amount);
     acc.byAccount.set(t.accountId, (acc.byAccount.get(t.accountId) ?? 0) + t.amount);
+
+    const merchant = t.merchant?.trim();
+    if (merchant) {
+      acc.byMerchant.set(merchant, (acc.byMerchant.get(merchant) ?? 0) + t.amount);
+    }
   }
 
   const byCurrency: CurrencySpendingSummary[] = [...perCurrency.entries()]
@@ -81,6 +98,9 @@ export async function summarizeSpending(
       byAccount: [...acc.byAccount.entries()]
         .map(([accountId, sum]) => ({ accountId, total: roundMoney(sum) }))
         .sort((a, b) => b.total - a.total),
+      byMerchant: [...acc.byMerchant.entries()]
+        .map(([merchant, sum]) => ({ merchant, total: roundMoney(sum) }))
+        .sort((a, b) => b.total - a.total || a.merchant.localeCompare(b.merchant)),
     }))
     .sort((a, b) => a.currency.localeCompare(b.currency));
 
@@ -91,6 +111,104 @@ export async function summarizeSpending(
     total: single ? single.total : byCurrency.length === 0 ? 0 : null,
     currency: single ? single.currency : null,
   };
+}
+
+export interface TrendOptions {
+  /** How many calendar months to include, ending with the current one. */
+  months?: number;
+  /** Reference date; defaults to now. */
+  reference?: number | Date;
+  accountId?: string;
+}
+
+export interface TrendPoint {
+  /** First millisecond of the month (inclusive). */
+  from: number;
+  /** Last millisecond of the month (inclusive). */
+  to: number;
+  total: number;
+}
+
+export interface CurrencyTrend {
+  currency: string;
+  /** Oldest month first; every month in the window is present. */
+  points: TrendPoint[];
+}
+
+export interface SpendingTrend {
+  /** One entry per currency with expenses in the window, sorted by code. */
+  byCurrency: CurrencyTrend[];
+}
+
+const DEFAULT_TREND_MONTHS = 6;
+const MAX_TREND_MONTHS = 24;
+
+/**
+ * Monthly expense totals for the last `months` calendar months.
+ *
+ * Buckets are computed in the device's local time zone and zero-filled, so the
+ * UI can render a stable bar chart. Currencies are kept separate.
+ * Scans up to `listTransactions`' cap (1000); pagination is a follow-up.
+ */
+export async function spendingTrend(
+  db: DatabaseDriver,
+  opts: TrendOptions = {},
+): Promise<SpendingTrend> {
+  const requested = opts.months ?? DEFAULT_TREND_MONTHS;
+  const months = Number.isFinite(requested)
+    ? Math.min(MAX_TREND_MONTHS, Math.max(1, Math.trunc(requested)))
+    : DEFAULT_TREND_MONTHS;
+
+  const reference = opts.reference == null ? new Date() : new Date(opts.reference);
+  if (Number.isNaN(reference.getTime())) {
+    throw new RangeError("Invalid trend reference date");
+  }
+
+  const first = new Date(reference.getFullYear(), reference.getMonth() - (months - 1), 1);
+  const windows: DateRange[] = [];
+  for (let i = 0; i < months; i += 1) {
+    windows.push(monthRange(new Date(first.getFullYear(), first.getMonth() + i, 1)));
+  }
+
+  const last = windows[months - 1]!;
+  const transactions = await listTransactions(db, {
+    from: windows[0]!.from,
+    to: last.to,
+    accountId: opts.accountId,
+    limit: 1000,
+  });
+
+  const perCurrency = new Map<string, number[]>();
+  const firstYear = first.getFullYear();
+  const firstMonth = first.getMonth();
+
+  for (const t of transactions) {
+    if (t.type !== "expense") continue;
+
+    const date = new Date(t.date);
+    const index = (date.getFullYear() - firstYear) * 12 + (date.getMonth() - firstMonth);
+    if (index < 0 || index >= months) continue;
+
+    let buckets = perCurrency.get(t.currency);
+    if (!buckets) {
+      buckets = new Array<number>(months).fill(0);
+      perCurrency.set(t.currency, buckets);
+    }
+    buckets[index] = (buckets[index] ?? 0) + t.amount;
+  }
+
+  const byCurrency: CurrencyTrend[] = [...perCurrency.entries()]
+    .map(([currency, buckets]) => ({
+      currency,
+      points: windows.map((window, index) => ({
+        from: window.from,
+        to: window.to,
+        total: roundMoney(buckets[index] ?? 0),
+      })),
+    }))
+    .sort((a, b) => a.currency.localeCompare(b.currency));
+
+  return { byCurrency };
 }
 
 export interface AccountBalance {

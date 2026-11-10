@@ -47,6 +47,7 @@ const en: Record<string, string> = {
   "insights.total": "Total spent",
   "insights.byCategory": "By category",
   "insights.byAccount": "By account",
+  "insights.topMerchants": "Top merchants",
   "insights.byCurrency": "By currency",
   "insights.trend": "Trend",
   "insights.comparedToLastMonth": "vs last month",
