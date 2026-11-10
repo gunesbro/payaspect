@@ -4,7 +4,6 @@ import {
   formatMonthShort,
   type CurrencyTrend,
   type Locale,
-  type TrendPoint,
 } from "@payaspect/core";
 import { ScreenGate } from "../components/ScreenGate";
 import {
@@ -21,32 +20,10 @@ import { categoryLabel } from "../i18n/labels";
 import { useI18n } from "../i18n/I18nProvider";
 import { useAppStore } from "../store/AppStore";
 import { colors } from "../theme";
+import { formatPercent, monthChange } from "../utils/insights";
 
 const TREND_BAR_HEIGHT = 64;
 const MERCHANT_LIMIT = 5;
-
-function formatPercentChange(value: number, locale: Locale): string {
-  const rounded = Math.round(value * 10) / 10;
-  const number = Math.abs(rounded)
-    .toFixed(1)
-    .replace(".", locale === "tr" ? "," : ".");
-  const sign = rounded > 0 ? "+" : rounded < 0 ? "-" : "";
-  return `${sign}${number}%`;
-}
-
-function comparisonLabel(
-  current: number,
-  points: TrendPoint[] | undefined,
-  label: string,
-  locale: Locale,
-): string | null {
-  if (!points || points.length < 2) return null;
-  const previous = points[points.length - 2]?.total ?? 0;
-  if (previous <= 0) return null;
-
-  const change = ((current - previous) / previous) * 100;
-  return `${formatPercentChange(change, locale)} ${label}`;
-}
 
 function TrendBars({ entry, locale }: { entry: CurrencyTrend; locale: Locale }) {
   const max = entry.points.reduce((highest, point) => Math.max(highest, point.total), 0);
@@ -104,12 +81,13 @@ export function InsightsScreen() {
         <SectionTitle>{t("insights.byCurrencyTitle")}</SectionTitle>
         {summary && summary.byCurrency.length > 0 ? (
           summary.byCurrency.map((currency) => {
-            const comparison = comparisonLabel(
+            const change = monthChange(
               currency.total,
               trendByCurrency.get(currency.currency),
-              t("insights.comparedToLastMonth"),
-              locale,
             );
+            const comparison = change
+              ? `${formatPercent(change.percent, locale, true)} ${t("insights.comparedToLastMonth")}`
+              : null;
 
             return (
               <Card key={currency.currency}>
