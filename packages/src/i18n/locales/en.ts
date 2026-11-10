@@ -54,6 +54,12 @@ const en: Record<string, string> = {
   "insights.noData": "Not enough data yet",
   "insights.thisMonth": "This month",
   "insights.noSpending": "No spending this month",
+  "insights.summaryTitle": "This month at a glance",
+  "insights.summaryTopCategory": "Top category: {category} · {amount} ({percent}%)",
+  "insights.summaryUp": "Spending is up {percent} vs last month.",
+  "insights.summaryDown": "Spending is down {percent} vs last month.",
+  "insights.summaryFlat": "Spending is about the same as last month.",
+  "insights.summaryNoPrevious": "No spending recorded last month.",
 
   "accounts.count": "Accounts: {count}",
   "accounts.empty": "No accounts yet",

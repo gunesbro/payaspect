@@ -54,6 +54,12 @@ const tr: Record<string, string> = {
   "insights.noData": "Henüz yeterli veri yok",
   "insights.thisMonth": "Bu ay",
   "insights.noSpending": "Bu ay harcama yok",
+  "insights.summaryTitle": "Bu ayın özeti",
+  "insights.summaryTopCategory": "En çok harcama: {category} · {amount} (%{percent})",
+  "insights.summaryUp": "Harcama geçen aya göre %{percent} arttı.",
+  "insights.summaryDown": "Harcama geçen aya göre %{percent} azaldı.",
+  "insights.summaryFlat": "Harcama geçen ayla yaklaşık aynı.",
+  "insights.summaryNoPrevious": "Geçen ay harcama kaydı yok.",
 
   "accounts.count": "Hesap: {count}",
   "accounts.empty": "Henüz hesap yok",
