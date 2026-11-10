@@ -66,7 +66,9 @@ export function DashboardScreen() {
               <ListRow
                 key={tx.id}
                 title={tx.merchant ?? t(`tx.type.${tx.type}`)}
-                subtitle={`${formatDate(tx.date, locale)} · ${t(`tx.type.${tx.type}`)}`}
+                subtitle={`${formatDate(tx.date, locale)} · ${t(`tx.type.${tx.type}`)}${
+                  tx.isRecurring ? ` · ${t("tx.recurring")}` : ""
+                }`}
                 value={transactionAmount(tx, locale)}
               />
             ))

@@ -13,6 +13,7 @@ import {
   insertTransaction,
   listAccounts,
   listTransactions,
+  markRecurringTransactions,
   monthRange,
   spendingTrend,
   summarizeSpending,
@@ -186,6 +187,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     async (transaction: Transaction) => {
       const db = await getDatabase();
       await insertTransaction(db, transaction);
+      // Refresh the recurring flags so the list reflects the new pattern.
+      await markRecurringTransactions(db);
       await load(false);
     },
     [load],
@@ -195,6 +198,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     async (transaction: Transaction) => {
       const db = await getDatabase();
       await updateTransaction(db, transaction);
+      await markRecurringTransactions(db);
       await load(false);
     },
     [load],
