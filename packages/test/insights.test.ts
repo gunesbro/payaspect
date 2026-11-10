@@ -5,7 +5,7 @@ import { MemoryDatabaseDriver } from "../src/db/memoryDriver.ts";
 import { openDatabase } from "../src/db/database.ts";
 import { insertAccount } from "../src/db/repositories/accounts.ts";
 import { insertTransaction } from "../src/db/repositories/transactions.ts";
-import { getAccountBalances, summarizeSpending } from "../src/db/repositories/insights.ts";
+import { getAccountBalances, spendingTrend, summarizeSpending } from "../src/db/repositories/insights.ts";
 import { monthRange } from "../src/domain/dateRange.ts";
 import type { Account, Transaction } from "../src/domain/types.ts";
 
@@ -79,12 +79,14 @@ test("summarizeSpending never mixes currencies", async () => {
         { categoryId: "sys_dining", total: 50 },
       ],
       byAccount: [{ accountId: "acc_1", total: 150 }],
+      byMerchant: [],
     },
     {
       currency: "USD",
       total: 30,
       byCategory: [{ categoryId: "sys_groceries", total: 30 }],
       byAccount: [{ accountId: "acc_1", total: 30 }],
+      byMerchant: [],
     },
   ]);
 });
@@ -107,8 +109,29 @@ test("summarizeSpending exposes a total for single-currency data", async () => {
         { categoryId: "sys_dining", total: 50 },
       ],
       byAccount: [{ accountId: "acc_1", total: 150 }],
+      byMerchant: [],
     },
   ]);
+});
+
+test("summarizeSpending groups merchants per currency", async () => {
+  const db = await freshDb();
+  await insertTransaction(db, makeTx("t1", { amount: 40, merchant: "Migros" }));
+  await insertTransaction(db, makeTx("t2", { amount: 60, merchant: " Migros " }));
+  await insertTransaction(db, makeTx("t3", { amount: 25, merchant: "Cafe" }));
+  await insertTransaction(db, makeTx("t4", { amount: 90, merchant: null }));
+  await insertTransaction(
+    db,
+    makeTx("t5", { amount: 10, merchant: "Cafe", currency: "USD" }),
+  );
+
+  const summary = await summarizeSpending(db);
+
+  assert.deepEqual(summary.byCurrency[0]!.byMerchant, [
+    { merchant: "Migros", total: 100 },
+    { merchant: "Cafe", total: 25 },
+  ]);
+  assert.deepEqual(summary.byCurrency[1]!.byMerchant, [{ merchant: "Cafe", total: 10 }]);
 });
 
 test("summarizeSpending respects the date range", async () => {
@@ -161,4 +184,74 @@ test("getAccountBalances handles income, expenses and transfers", async () => {
     { accountId: "acc_1", inflow: 3000, outflow: 150, balance: 2850 },
     { accountId: "acc_2", inflow: 50, outflow: 30, balance: 20 },
   ]);
+});
+
+test("spendingTrend zero-fills the last months per currency", async () => {
+  const db = await freshDb();
+  const reference = new Date(2026, 5, 15, 12); // June 2026
+
+  await insertTransaction(
+    db,
+    makeTx("t1", { amount: 100, date: new Date(2026, 5, 10).getTime() }),
+  );
+  await insertTransaction(
+    db,
+    makeTx("t2", { amount: 50, date: new Date(2026, 4, 10).getTime() }),
+  );
+  await insertTransaction(
+    db,
+    makeTx("t3", {
+      type: "income",
+      amount: 900,
+      date: new Date(2026, 5, 1).getTime(),
+      categoryId: "sys_other",
+    }),
+  );
+  await insertTransaction(
+    db,
+    makeTx("t4", {
+      amount: 30,
+      currency: "USD",
+      date: new Date(2026, 5, 5).getTime(),
+    }),
+  );
+  // Outside the 3-month window.
+  await insertTransaction(
+    db,
+    makeTx("t5", { amount: 999, date: new Date(2026, 1, 10).getTime() }),
+  );
+
+  const trend = await spendingTrend(db, { months: 3, reference });
+
+  assert.deepEqual(
+    trend.byCurrency.map((entry) => entry.currency),
+    ["TRY", "USD"],
+  );
+
+  const tryTrend = trend.byCurrency[0]!;
+  assert.equal(tryTrend.points.length, 3);
+  assert.deepEqual(
+    tryTrend.points.map((point) => point.total),
+    [0, 50, 100],
+  );
+  assert.equal(tryTrend.points[0]!.from, new Date(2026, 3, 1).getTime());
+  assert.equal(tryTrend.points[2]!.from, new Date(2026, 5, 1).getTime());
+  assert.equal(tryTrend.points[2]!.to, new Date(2026, 6, 1).getTime() - 1);
+
+  const usdTrend = trend.byCurrency[1]!;
+  assert.deepEqual(
+    usdTrend.points.map((point) => point.total),
+    [0, 0, 30],
+  );
+});
+
+test("spendingTrend is empty without expenses", async () => {
+  const db = await freshDb();
+  await insertTransaction(db, makeTx("t1", { type: "income", amount: 100 }));
+
+  const trend = await spendingTrend(db, {
+    months: 2,
+    reference: new Date(2026, 5, 15, 12),
+  });
+  assert.deepEqual(trend.byCurrency, []);
 });

@@ -14,11 +14,13 @@ import {
   listAccounts,
   listTransactions,
   monthRange,
+  spendingTrend,
   summarizeSpending,
   updateTransaction,
   type Account,
   type DateRange,
   type SpendingSummary,
+  type SpendingTrend,
   type Transaction,
 } from "@payaspect/core";
 import { getDatabase } from "../db";
@@ -31,6 +33,7 @@ interface AppStoreValue {
   accounts: Account[];
   transactions: Transaction[];
   summary: SpendingSummary | null;
+  trend: SpendingTrend | null;
   range: DateRange;
   refresh: () => Promise<void>;
   addAccount: (account: Account) => Promise<void>;
@@ -50,6 +53,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [summary, setSummary] = useState<SpendingSummary | null>(null);
+  const [trend, setTrend] = useState<SpendingTrend | null>(null);
   const [range, setRange] = useState<DateRange>(() => monthRange());
 
   const load = useCallback(async (showLoading: boolean) => {
@@ -57,17 +61,19 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     try {
       const db = await getDatabase();
       const nextRange = monthRange();
-      const [nextAccounts, nextTransactions, nextSummary] = await Promise.all([
+      const [nextAccounts, nextTransactions, nextSummary, nextTrend] = await Promise.all([
         listAccounts(db),
         // Recent transactions across all months; the dashboard filters by range.
         listTransactions(db, { limit: 100 }),
         summarizeSpending(db, nextRange),
+        spendingTrend(db, { months: 6, reference: nextRange.from }),
       ]);
 
       setRange(nextRange);
       setAccounts(nextAccounts);
       setTransactions(nextTransactions);
       setSummary(nextSummary);
+      setTrend(nextTrend);
       setError(null);
       setStatus("ready");
     } catch (cause) {
@@ -210,6 +216,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       accounts,
       transactions,
       summary,
+      trend,
       range,
       refresh,
       addAccount,
@@ -224,6 +231,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       accounts,
       transactions,
       summary,
+      trend,
       range,
       refresh,
       addAccount,

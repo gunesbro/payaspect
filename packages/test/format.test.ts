@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { formatAmount, formatDate } from "../src/format.ts";
+import { formatAmount, formatDate, formatMonthShort } from "../src/format.ts";
 
 test("formatAmount uses Turkish grouping/symbol by default", () => {
   assert.equal(formatAmount(1234.56, "TRY"), "1.234,56 ₺");
@@ -23,4 +23,11 @@ test("formatDate renders day-first (tr) and month-first (en)", () => {
   const t = new Date(2024, 2, 15).getTime();
   assert.equal(formatDate(t, "tr"), "15.03.2024");
   assert.equal(formatDate(t, "en"), "03/15/2024");
+});
+
+test("formatMonthShort returns locale month names", () => {
+  assert.equal(formatMonthShort(new Date(2026, 5, 15).getTime(), "tr"), "Haz");
+  assert.equal(formatMonthShort(new Date(2026, 5, 15).getTime(), "en"), "Jun");
+  assert.equal(formatMonthShort(new Date(2026, 0, 1).getTime(), "tr"), "Oca");
+  assert.equal(formatMonthShort(new Date(2026, 11, 1).getTime(), "en"), "Dec");
 });
