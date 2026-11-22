@@ -107,7 +107,11 @@ const tr: Record<string, string> = {
   "export.failed": "Dışa aktarma başarısız oldu veya iptal edildi.",
 
   "ocr.scanReceipt": "Fiş tara",
-  "ocr.reviewSuggestions": "Önerileri gözden geçir",
+  "ocr.reviewSuggestions": "Kaydetmeden önce önerileri gözden geçir.",
+  "ocr.permissionDenied": "Fiş taramak için kamera erişimi gerekiyor.",
+  "ocr.cancelled": "Tarama iptal edildi.",
+  "ocr.noFields": "Hiçbir alan algılanamadı. Formu elle doldurabilirsin.",
+  "ocr.failed": "Fiş okunamadı. Tekrar dene veya elle gir.",
   "common.save": "Kaydet",
   "common.cancel": "İptal",
   "common.delete": "Sil",
