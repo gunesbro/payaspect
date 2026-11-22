@@ -1,6 +1,5 @@
 import {
   KeywordClassifier,
-  SYSTEM_CATEGORY_KEYS,
   parseDate,
   validateTransaction,
   type Transaction,
@@ -17,6 +16,7 @@ import {
   TextField,
 } from "../components/ui";
 import { useI18n } from "../i18n/I18nProvider";
+import { categoryLabel } from "../i18n/labels";
 import { useAppStore } from "../store/AppStore";
 import { colors } from "../theme";
 import { toDateInput } from "../utils/date";
@@ -56,8 +56,17 @@ export function TransactionForm({
   extraActions,
 }: TransactionFormProps) {
   const { t } = useI18n();
-  const { accounts } = useAppStore();
+  const { accounts, categories } = useAppStore();
   const editing = initial != null;
+
+  const visibleCategories = useMemo(
+    () => categories.filter((category) => !category.hidden && category.type === "expense"),
+    [categories],
+  );
+  const fallbackCategory =
+    visibleCategories.find((category) => category.key === "other")?.id ??
+    visibleCategories[0]?.id ??
+    DEFAULT_CATEGORY;
 
   const [type, setType] = useState<TransactionType>(initial?.type ?? "expense");
   const [amountText, setAmountText] = useState(
@@ -73,7 +82,7 @@ export function TransactionForm({
     initial?.toAccountId ?? null,
   );
   const [categoryId, setCategoryId] = useState(
-    initial?.categoryId ?? DEFAULT_CATEGORY,
+    initial?.categoryId ?? fallbackCategory,
   );
   // Never let the classifier overwrite a category the user already saved.
   const [categoryTouched, setCategoryTouched] = useState(editing);
@@ -112,7 +121,7 @@ export function TransactionForm({
   function selectType(next: TransactionType) {
     setType(next);
     if (next !== "expense") {
-      setCategoryId(DEFAULT_CATEGORY);
+      setCategoryId(fallbackCategory);
       setCategoryTouched(false);
     }
   }
@@ -127,7 +136,13 @@ export function TransactionForm({
   async function suggestCategory() {
     if (type !== "expense" || categoryTouched) return;
     const suggestion = await classifier.classify({ merchant, note });
-    if (suggestion.categoryId) setCategoryId(suggestion.categoryId);
+    const suggestedId = suggestion.categoryId;
+    if (
+      suggestedId &&
+      visibleCategories.some((category) => category.id === suggestedId)
+    ) {
+      setCategoryId(suggestedId);
+    }
   }
 
   function resetForm() {
@@ -135,7 +150,7 @@ export function TransactionForm({
     setMerchant("");
     setNote("");
     setDateText(toDateInput(Date.now()));
-    setCategoryId(DEFAULT_CATEGORY);
+    setCategoryId(fallbackCategory);
     setCategoryTouched(false);
   }
 
@@ -266,13 +281,13 @@ export function TransactionForm({
           <>
             <Text style={styles.label}>{t("tx.category")}</Text>
             <View style={styles.wrap}>
-              {SYSTEM_CATEGORY_KEYS.map((key) => (
+              {visibleCategories.map((category) => (
                 <Chip
-                  key={key}
-                  label={t(`category.${key}`)}
-                  active={categoryId === `sys_${key}`}
+                  key={category.id}
+                  label={categoryLabel(category.id, t, categories)}
+                  active={categoryId === category.id}
                   onPress={() => {
-                    setCategoryId(`sys_${key}`);
+                    setCategoryId(category.id);
                     setCategoryTouched(true);
                   }}
                 />

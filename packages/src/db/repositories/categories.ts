@@ -39,6 +39,49 @@ export async function listCategories(db: DatabaseDriver): Promise<Category[]> {
   return rows.map(rowToCategory);
 }
 
+/** All categories, including hidden ones, for management screens and labels. */
+export async function listAllCategories(db: DatabaseDriver): Promise<Category[]> {
+  const rows = await db.all("SELECT * FROM categories ORDER BY sort ASC, name ASC");
+  return rows.map(rowToCategory);
+}
+
+export async function insertCategory(db: DatabaseDriver, category: Category): Promise<void> {
+  await db.run(
+    `INSERT INTO categories (id, key, name, parent_id, type, is_system, hidden, sort)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      category.id,
+      category.key ?? null,
+      category.name,
+      category.parentId ?? null,
+      category.type,
+      category.isSystem ? 1 : 0,
+      category.hidden ? 1 : 0,
+      category.sort,
+    ],
+  );
+}
+
+/**
+ * Update the editable fields of a category. `key` and `isSystem` are stable
+ * identifiers and are intentionally left untouched.
+ */
+export async function updateCategory(db: DatabaseDriver, category: Category): Promise<void> {
+  await db.run(
+    `UPDATE categories
+        SET name = ?, parent_id = ?, type = ?, hidden = ?, sort = ?
+      WHERE id = ?`,
+    [
+      category.name,
+      category.parentId ?? null,
+      category.type,
+      category.hidden ? 1 : 0,
+      category.sort,
+      category.id,
+    ],
+  );
+}
+
 export async function getCategoryById(
   db: DatabaseDriver,
   id: string,
