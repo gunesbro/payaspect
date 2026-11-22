@@ -99,6 +99,13 @@ const tr: Record<string, string> = {
   "settings.privacyBody": "Tüm veriler bu cihazda kalır. Veritabanı SQLCipher ile şifrelenir; uygulamada analitik veya ağ erişimi yoktur.",
   "settings.version": "Sürüm",
 
+  "export.title": "Veriyi dışa aktar",
+  "export.body": "Verilerinizin şifrelenmemiş bir kopyasını nereye kaydedeceğinizi seçin. Hiçbir şey cihazdan çıkmaz; dosyayı nerede saklayacağınıza siz karar verirsiniz.",
+  "export.csv": "CSV olarak dışa aktar",
+  "export.json": "JSON olarak dışa aktar",
+  "export.saved": "{name} olarak kaydedildi",
+  "export.failed": "Dışa aktarma başarısız oldu veya iptal edildi.",
+
   "ocr.scanReceipt": "Fiş tara",
   "ocr.reviewSuggestions": "Önerileri gözden geçir",
   "common.save": "Kaydet",

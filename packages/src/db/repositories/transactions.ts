@@ -122,6 +122,12 @@ export async function listTransactions(
   return rows.map(rowToTransaction);
 }
 
+/** All transactions oldest-first, for exports and backups (no row cap). */
+export async function listAllTransactions(db: DatabaseDriver): Promise<Transaction[]> {
+  const rows = await db.all("SELECT * FROM transactions ORDER BY date ASC, created_at ASC");
+  return rows.map(rowToTransaction);
+}
+
 export async function getTransactionById(
   db: DatabaseDriver,
   id: string,

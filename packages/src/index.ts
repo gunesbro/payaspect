@@ -26,3 +26,4 @@ export * from "./db/repositories/rates.ts";
 export * from "./db/repositories/recurring.ts";
 export * from "./db/repositories/attachments.ts";
 export * from "./db/repositories/insights.ts";
+export * from "./export/exportData.ts";

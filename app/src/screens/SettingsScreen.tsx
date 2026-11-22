@@ -3,6 +3,7 @@ import Constants from "expo-constants";
 import { View } from "react-native";
 import { ScreenGate } from "../components/ScreenGate";
 import { CategoryManager } from "../components/CategoryManager";
+import { DataExport } from "../components/DataExport";
 import {
   Card,
   Chip,
@@ -53,6 +54,8 @@ export function SettingsScreen() {
           <SectionTitle>{t("settings.data")}</SectionTitle>
           <PrimaryButton label={t("dev.seedSampleData")} onPress={() => void seedSampleData()} />
         </Card>
+
+        <DataExport />
 
         <Card>
           <SectionTitle>{t("settings.privacy")}</SectionTitle>
