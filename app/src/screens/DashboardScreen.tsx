@@ -1,5 +1,6 @@
 import { formatAmount, formatDate, type Locale, type Transaction } from "@payaspect/core";
 import { ScreenGate } from "../components/ScreenGate";
+import { SpendingNarrative } from "../components/SpendingNarrative";
 import {
   Amount,
   Card,
@@ -21,7 +22,7 @@ function transactionAmount(tx: Transaction, locale: Locale): string {
 
 export function DashboardScreen() {
   const { t, locale } = useI18n();
-  const { accounts, transactions, summary, range, refresh } = useAppStore();
+  const { accounts, transactions, summary, trend, range, refresh } = useAppStore();
 
   const rangeLabel = `${formatDate(range.from, locale)} – ${formatDate(range.to, locale)}`;
   const recent = transactions
@@ -56,6 +57,8 @@ export function DashboardScreen() {
             <EmptyText>{t("insights.noSpending")}</EmptyText>
           )}
         </Card>
+
+        {summary ? <SpendingNarrative summary={summary} trend={trend} /> : null}
 
         <Muted>{t("accounts.count", { count: accounts.length })}</Muted>
 
