@@ -99,6 +99,13 @@ const en: Record<string, string> = {
   "settings.privacyBody": "All data stays on this device. The database is encrypted with SQLCipher and the app has no analytics or network access.",
   "settings.version": "Version",
 
+  "export.title": "Export data",
+  "export.body": "Choose where to save an unencrypted copy of your data. Nothing leaves the device; you decide where to keep the file.",
+  "export.csv": "Export CSV",
+  "export.json": "Export JSON",
+  "export.saved": "Saved as {name}",
+  "export.failed": "Export failed or was cancelled.",
+
   "ocr.scanReceipt": "Scan receipt",
   "ocr.reviewSuggestions": "Review suggestions",
   "common.save": "Save",
