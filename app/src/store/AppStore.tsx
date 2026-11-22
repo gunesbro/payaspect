@@ -10,15 +10,19 @@ import {
 import {
   deleteTransaction,
   insertAccount,
+  insertCategory,
   insertTransaction,
   listAccounts,
+  listAllCategories,
   listTransactions,
   markRecurringTransactions,
   monthRange,
   spendingTrend,
   summarizeSpending,
+  updateCategory,
   updateTransaction,
   type Account,
+  type Category,
   type DateRange,
   type SpendingSummary,
   type SpendingTrend,
@@ -32,12 +36,15 @@ interface AppStoreValue {
   status: Status;
   error: string | null;
   accounts: Account[];
+  categories: Category[];
   transactions: Transaction[];
   summary: SpendingSummary | null;
   trend: SpendingTrend | null;
   range: DateRange;
   refresh: () => Promise<void>;
   addAccount: (account: Account) => Promise<void>;
+  addCategory: (category: Category) => Promise<void>;
+  updateCategory: (category: Category) => Promise<void>;
   addTransaction: (transaction: Transaction) => Promise<void>;
   updateTransaction: (transaction: Transaction) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
@@ -52,6 +59,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>("loading");
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [summary, setSummary] = useState<SpendingSummary | null>(null);
   const [trend, setTrend] = useState<SpendingTrend | null>(null);
@@ -62,16 +70,19 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     try {
       const db = await getDatabase();
       const nextRange = monthRange();
-      const [nextAccounts, nextTransactions, nextSummary, nextTrend] = await Promise.all([
-        listAccounts(db),
-        // Recent transactions across all months; the dashboard filters by range.
-        listTransactions(db, { limit: 100 }),
-        summarizeSpending(db, nextRange),
-        spendingTrend(db, { months: 6, reference: nextRange.from }),
-      ]);
+      const [nextAccounts, nextCategories, nextTransactions, nextSummary, nextTrend] =
+        await Promise.all([
+          listAccounts(db),
+          listAllCategories(db),
+          // Recent transactions across all months; the dashboard filters by range.
+          listTransactions(db, { limit: 100 }),
+          summarizeSpending(db, nextRange),
+          spendingTrend(db, { months: 6, reference: nextRange.from }),
+        ]);
 
       setRange(nextRange);
       setAccounts(nextAccounts);
+      setCategories(nextCategories);
       setTransactions(nextTransactions);
       setSummary(nextSummary);
       setTrend(nextTrend);
@@ -183,6 +194,24 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     [load],
   );
 
+  const addCategory = useCallback(
+    async (category: Category) => {
+      const db = await getDatabase();
+      await insertCategory(db, category);
+      await load(false);
+    },
+    [load],
+  );
+
+  const updateCategoryAction = useCallback(
+    async (category: Category) => {
+      const db = await getDatabase();
+      await updateCategory(db, category);
+      await load(false);
+    },
+    [load],
+  );
+
   const addTransaction = useCallback(
     async (transaction: Transaction) => {
       const db = await getDatabase();
@@ -218,12 +247,15 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       status,
       error,
       accounts,
+      categories,
       transactions,
       summary,
       trend,
       range,
       refresh,
       addAccount,
+      addCategory,
+      updateCategory: updateCategoryAction,
       addTransaction,
       updateTransaction: updateTransactionAction,
       deleteTransaction: deleteTransactionAction,
@@ -233,12 +265,15 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       status,
       error,
       accounts,
+      categories,
       transactions,
       summary,
       trend,
       range,
       refresh,
       addAccount,
+      addCategory,
+      updateCategoryAction,
       addTransaction,
       updateTransactionAction,
       deleteTransactionAction,

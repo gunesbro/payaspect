@@ -54,7 +54,7 @@ function TrendBars({ entry, locale }: { entry: CurrencyTrend; locale: Locale }) 
 
 export function InsightsScreen() {
   const { t, locale } = useI18n();
-  const { accounts, summary, trend } = useAppStore();
+  const { accounts, categories, summary, trend } = useAppStore();
 
   const accountNames = new Map(accounts.map((account) => [account.id, account.name]));
   const trendByCurrency = new Map(
@@ -113,7 +113,7 @@ export function InsightsScreen() {
                   currency.byCategory.map((row) => (
                     <ListRow
                       key={row.categoryId ?? "none"}
-                      title={categoryLabel(row.categoryId, t)}
+                      title={categoryLabel(row.categoryId, t, categories)}
                       value={formatAmount(row.total, currency.currency, locale)}
                     />
                   ))

@@ -44,6 +44,16 @@ const tr: Record<string, string> = {
   "category.insurance_tax": "Sigorta & Vergi",
   "category.other": "Diğer",
 
+  "categories.title": "Kategoriler",
+  "categories.new": "Yeni kategori",
+  "categories.edit": "Kategoriyi düzenle",
+  "categories.name": "Ad",
+  "categories.save": "Kategoriyi kaydet",
+  "categories.hidden": "Gizli",
+  "categories.visible": "Görünür",
+  "categories.invalid": "Kategori adı gir.",
+  "categories.systemNote": "Sistem kategorilerinin adları ve anahtarları sabittir; yalnızca gizlenebilir.",
+
   "insights.total": "Toplam harcama",
   "insights.byCategory": "Kategoriye göre",
   "insights.byAccount": "Hesaba göre",

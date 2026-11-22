@@ -44,6 +44,16 @@ const en: Record<string, string> = {
   "category.insurance_tax": "Insurance & Tax",
   "category.other": "Other",
 
+  "categories.title": "Categories",
+  "categories.new": "New category",
+  "categories.edit": "Edit category",
+  "categories.name": "Name",
+  "categories.save": "Save category",
+  "categories.hidden": "Hidden",
+  "categories.visible": "Visible",
+  "categories.invalid": "Enter a category name.",
+  "categories.systemNote": "System categories keep their names and keys; you can hide them.",
+
   "insights.total": "Total spent",
   "insights.byCategory": "By category",
   "insights.byAccount": "By account",

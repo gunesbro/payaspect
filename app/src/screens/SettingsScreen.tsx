@@ -2,6 +2,7 @@ import { AVAILABLE_LOCALES, type Locale } from "@payaspect/core";
 import Constants from "expo-constants";
 import { View } from "react-native";
 import { ScreenGate } from "../components/ScreenGate";
+import { CategoryManager } from "../components/CategoryManager";
 import {
   Card,
   Chip,
@@ -45,6 +46,8 @@ export function SettingsScreen() {
             ))}
           </View>
         </Card>
+
+        <CategoryManager />
 
         <Card>
           <SectionTitle>{t("settings.data")}</SectionTitle>
