@@ -2,7 +2,9 @@ import {
   KeywordClassifier,
   parseDate,
   validateTransaction,
+  type ParsedTransactionDraft,
   type Transaction,
+  type TransactionSource,
   type TransactionType,
 } from "@payaspect/core";
 import * as Crypto from "expo-crypto";
@@ -41,6 +43,10 @@ interface TransactionFormProps {
   onSaved: () => void;
   /** Optional extra buttons rendered under the submit button (e.g. delete). */
   extraActions?: ReactNode;
+  /** On-device OCR suggestions used only when creating a new transaction. */
+  draft?: ParsedTransactionDraft | null;
+  /** How a newly created transaction was entered. */
+  source?: TransactionSource;
 }
 
 /**
@@ -54,10 +60,13 @@ export function TransactionForm({
   onSubmit,
   onSaved,
   extraActions,
+  draft = null,
+  source = "manual",
 }: TransactionFormProps) {
   const { t } = useI18n();
   const { accounts, categories } = useAppStore();
   const editing = initial != null;
+  const suggestion = editing ? null : draft;
 
   const visibleCategories = useMemo(
     () => categories.filter((category) => !category.hidden && category.type === "expense"),
@@ -70,10 +79,14 @@ export function TransactionForm({
 
   const [type, setType] = useState<TransactionType>(initial?.type ?? "expense");
   const [amountText, setAmountText] = useState(
-    initial ? String(initial.amount) : "",
+    initial
+      ? String(initial.amount)
+      : suggestion?.amount != null
+        ? String(suggestion.amount)
+        : "",
   );
   const [currency, setCurrency] = useState(
-    initial?.currency ?? accounts[0]?.currency ?? "TRY",
+    initial?.currency ?? suggestion?.currency ?? accounts[0]?.currency ?? "TRY",
   );
   const [accountId, setAccountId] = useState<string | null>(
     initial?.accountId ?? accounts[0]?.id ?? null,
@@ -87,9 +100,11 @@ export function TransactionForm({
   // Never let the classifier overwrite a category the user already saved.
   const [categoryTouched, setCategoryTouched] = useState(editing);
   const [dateText, setDateText] = useState(() =>
-    toDateInput(initial?.date ?? Date.now()),
+    toDateInput(initial?.date ?? suggestion?.date ?? Date.now()),
   );
-  const [merchant, setMerchant] = useState(initial?.merchant ?? "");
+  const [merchant, setMerchant] = useState(
+    initial?.merchant ?? suggestion?.merchant ?? "",
+  );
   const [note, setNote] = useState(initial?.note ?? "");
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -110,11 +125,12 @@ export function TransactionForm({
       Array.from(
         new Set([
           ...(initial ? [initial.currency] : []),
+          ...(suggestion?.currency ? [suggestion.currency] : []),
           ...accounts.map((account) => account.currency),
           ...CURRENCIES,
         ]),
       ),
-    [accounts, initial],
+    [accounts, initial, suggestion],
   );
   const destinationAccounts = accounts.filter((account) => account.id !== accountId);
 
@@ -181,7 +197,7 @@ export function TransactionForm({
       merchant: merchant.trim() || null,
       note: note.trim() || null,
       isRecurring: initial?.isRecurring ?? false,
-      source: initial?.source ?? "manual",
+      source: initial?.source ?? source,
       createdAt: initial?.createdAt ?? Date.now(),
     };
 

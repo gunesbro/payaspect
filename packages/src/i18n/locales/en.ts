@@ -107,7 +107,11 @@ const en: Record<string, string> = {
   "export.failed": "Export failed or was cancelled.",
 
   "ocr.scanReceipt": "Scan receipt",
-  "ocr.reviewSuggestions": "Review suggestions",
+  "ocr.reviewSuggestions": "Review suggestions before saving.",
+  "ocr.permissionDenied": "Camera access is required to scan a receipt.",
+  "ocr.cancelled": "Scan cancelled.",
+  "ocr.noFields": "No fields were recognized. Fill the form manually.",
+  "ocr.failed": "Could not read the receipt. Try again or enter it manually.",
   "common.save": "Save",
   "common.cancel": "Cancel",
   "common.delete": "Delete",
