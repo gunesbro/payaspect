@@ -6,6 +6,7 @@ import {
 import { StyleSheet, Text } from "react-native";
 import { useI18n } from "../i18n/I18nProvider";
 import { categoryLabel } from "../i18n/labels";
+import { useAppStore } from "../store/AppStore";
 import { colors } from "../theme";
 import { formatPercent, monthChange } from "../utils/insights";
 import { Card, SectionTitle } from "./ui";
@@ -21,6 +22,7 @@ interface SpendingNarrativeProps {
  */
 export function SpendingNarrative({ summary, trend }: SpendingNarrativeProps) {
   const { t, locale } = useI18n();
+  const { categories } = useAppStore();
 
   const trendByCurrency = new Map(
     (trend?.byCurrency ?? []).map((entry) => [entry.currency, entry.points]),
@@ -34,7 +36,7 @@ export function SpendingNarrative({ summary, trend }: SpendingNarrativeProps) {
       const percent = Math.round((top.total / currency.total) * 100);
       result.push(
         t("insights.summaryTopCategory", {
-          category: categoryLabel(top.categoryId, t),
+          category: categoryLabel(top.categoryId, t, categories),
           amount: formatAmount(top.total, currency.currency, locale),
           percent,
         }),
