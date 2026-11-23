@@ -7,6 +7,7 @@ import {
   type CurrencyTrend,
   type Locale,
 } from "@payaspect/core";
+import { QuestionAnswerPanel } from "../components/QuestionAnswerPanel";
 import { ScreenGate } from "../components/ScreenGate";
 import {
   Amount,
@@ -77,6 +78,8 @@ export function InsightsScreen() {
     <ScreenGate>
       <Screen>
         <Title>{t("nav.insights")}</Title>
+
+        <QuestionAnswerPanel />
 
         {trend && trend.byCurrency.length > 0 ? (
           <>

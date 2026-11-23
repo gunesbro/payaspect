@@ -9,6 +9,7 @@ export * from "./domain/dateRange.ts";
 export * from "./domain/spendingComparison.ts";
 export * from "./domain/anomalies.ts";
 export * from "./domain/budgets.ts";
+export * from "./domain/qa.ts";
 export * from "./ai/classifier.ts";
 export * from "./ai/keywordClassifier.ts";
 export * from "./parsers/amount.ts";
