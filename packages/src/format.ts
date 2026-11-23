@@ -31,6 +31,22 @@ export function formatAmount(
   return negative ? `-${formatted}` : formatted;
 }
 
+/** Locale-aware percentage with one decimal, optionally signed. */
+export function formatPercent(
+  value: number,
+  locale: FormatLocale = "tr",
+  signed = false,
+): string {
+  const rounded = Math.round(value * 10) / 10;
+  const number = Math.abs(rounded)
+    .toFixed(1)
+    .replace(".", locale === "tr" ? "," : ".");
+  if (!signed) return `${number}%`;
+
+  const sign = rounded > 0 ? "+" : rounded < 0 ? "-" : "";
+  return `${sign}${number}%`;
+}
+
 /** Format an epoch-millis timestamp as a calendar date. */
 export function formatDate(epochMs: number, locale: FormatLocale = "tr"): string {
   const d = new Date(epochMs);
