@@ -149,6 +149,7 @@ interface TextFieldProps {
   placeholder?: string;
   keyboardType?: TextInputProps["keyboardType"];
   autoCapitalize?: TextInputProps["autoCapitalize"];
+  secureTextEntry?: boolean;
   multiline?: boolean;
   onBlur?: () => void;
 }
@@ -160,6 +161,7 @@ export function TextField({
   placeholder,
   keyboardType,
   autoCapitalize = "none",
+  secureTextEntry = false,
   multiline = false,
   onBlur,
 }: TextFieldProps) {
@@ -174,6 +176,7 @@ export function TextField({
         placeholderTextColor={colors.muted}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
+        secureTextEntry={secureTextEntry}
         multiline={multiline}
         onBlur={onBlur}
         style={[styles.input, multiline && styles.inputMultiline]}
