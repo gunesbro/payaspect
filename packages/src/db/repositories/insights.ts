@@ -135,9 +135,21 @@ export interface CurrencyTrend {
   points: TrendPoint[];
 }
 
+export interface CategoryTrend {
+  currency: string;
+  categoryId: string;
+  /** Oldest month first; every month in the window is present (zero-filled). */
+  points: TrendPoint[];
+}
+
 export interface SpendingTrend {
   /** One entry per currency with expenses in the window, sorted by code. */
   byCurrency: CurrencyTrend[];
+  /**
+   * One series per currency/category pair, sorted by code then category id.
+   * Currencies are tracked separately and never mixed.
+   */
+  byCategory: CategoryTrend[];
 }
 
 const DEFAULT_TREND_MONTHS = 6;
@@ -178,7 +190,14 @@ export async function spendingTrend(
     limit: 1000,
   });
 
+  interface CategoryBuckets {
+    currency: string;
+    categoryId: string;
+    buckets: number[];
+  }
+
   const perCurrency = new Map<string, number[]>();
+  const perCategory = new Map<string, CategoryBuckets>();
   const firstYear = first.getFullYear();
   const firstMonth = first.getMonth();
 
@@ -195,6 +214,20 @@ export async function spendingTrend(
       perCurrency.set(t.currency, buckets);
     }
     buckets[index] = (buckets[index] ?? 0) + t.amount;
+
+    if (t.categoryId) {
+      const key = `${t.currency}\u0000${t.categoryId}`;
+      let entry = perCategory.get(key);
+      if (!entry) {
+        entry = {
+          currency: t.currency,
+          categoryId: t.categoryId,
+          buckets: new Array<number>(months).fill(0),
+        };
+        perCategory.set(key, entry);
+      }
+      entry.buckets[index] = (entry.buckets[index] ?? 0) + t.amount;
+    }
   }
 
   const byCurrency: CurrencyTrend[] = [...perCurrency.entries()]
@@ -208,7 +241,23 @@ export async function spendingTrend(
     }))
     .sort((a, b) => a.currency.localeCompare(b.currency));
 
-  return { byCurrency };
+  const byCategory: CategoryTrend[] = [...perCategory.values()]
+    .map(({ currency, categoryId, buckets }) => ({
+      currency,
+      categoryId,
+      points: windows.map((window, index) => ({
+        from: window.from,
+        to: window.to,
+        total: roundMoney(buckets[index] ?? 0),
+      })),
+    }))
+    .sort(
+      (a, b) =>
+        a.currency.localeCompare(b.currency) ||
+        a.categoryId.localeCompare(b.categoryId),
+    );
+
+  return { byCurrency, byCategory };
 }
 
 export interface AccountBalance {

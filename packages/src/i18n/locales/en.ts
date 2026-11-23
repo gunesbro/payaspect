@@ -70,6 +70,12 @@ const en: Record<string, string> = {
   "insights.summaryDown": "Spending is down {percent} vs last month.",
   "insights.summaryFlat": "Spending is about the same as last month.",
   "insights.summaryNoPrevious": "No spending recorded last month.",
+  "insights.categoryChanges": "Category changes vs last month",
+  "insights.anomalies": "Unusual spending",
+  "insights.anomalyNone": "No unusual spending detected yet.",
+  "insights.anomalyNeedData": "Needs at least three months of category history.",
+  "insights.anomalyComparedToTypical": "above typical monthly spending",
+  "insights.noPreviousCategory": "No spending last month",
 
   "accounts.count": "Accounts: {count}",
   "accounts.empty": "No accounts yet",

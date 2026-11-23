@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import {
+  categoryMonthChanges,
+  detectSpendingAnomalies,
   formatAmount,
   formatMonthShort,
   type CurrencyTrend,
@@ -61,6 +63,16 @@ export function InsightsScreen() {
     (trend?.byCurrency ?? []).map((entry) => [entry.currency, entry.points]),
   );
 
+  const changes = trend ? categoryMonthChanges(trend) : [];
+  const anomalies = trend ? detectSpendingAnomalies(trend) : [];
+  const hasAnomalyHistory =
+    trend?.byCategory.some((entry) => entry.points.length >= 3) ?? false;
+  // Rows with a comparable previous month first; cap the list to keep the screen light.
+  const visibleChanges = changes
+    .filter((row) => row.current > 0)
+    .sort((a, b) => Number(a.change == null) - Number(b.change == null))
+    .slice(0, 8);
+
   return (
     <ScreenGate>
       <Screen>
@@ -77,6 +89,49 @@ export function InsightsScreen() {
             ))}
           </>
         ) : null}
+
+        {visibleChanges.length > 0 ? (
+          <>
+            <SectionTitle>{t("insights.categoryChanges")}</SectionTitle>
+            <Card>
+              {visibleChanges.map((row) => (
+                <ListRow
+                  key={`${row.currency}-${row.categoryId}`}
+                  title={`${categoryLabel(row.categoryId, t, categories)} · ${row.currency}`}
+                  value={
+                    row.change
+                      ? formatPercent(row.change.percent, locale, true)
+                      : t("insights.noPreviousCategory")
+                  }
+                />
+              ))}
+            </Card>
+          </>
+        ) : null}
+
+        <SectionTitle>{t("insights.anomalies")}</SectionTitle>
+        <Card>
+          {anomalies.length > 0 ? (
+            <>
+              <Muted>{t("insights.anomalyComparedToTypical")}</Muted>
+              {anomalies.slice(0, 5).map((row) => (
+                <ListRow
+                  key={`${row.currency}-${row.categoryId}`}
+                  title={`${categoryLabel(row.categoryId, t, categories)} · ${row.currency} · ${formatAmount(row.current, row.currency, locale)}`}
+                  value={formatPercent(row.percent, locale)}
+                />
+              ))}
+            </>
+          ) : (
+            <EmptyText>
+              {t(
+                hasAnomalyHistory
+                  ? "insights.anomalyNone"
+                  : "insights.anomalyNeedData",
+              )}
+            </EmptyText>
+          )}
+        </Card>
 
         <SectionTitle>{t("insights.byCurrencyTitle")}</SectionTitle>
         {summary && summary.byCurrency.length > 0 ? (

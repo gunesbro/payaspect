@@ -70,6 +70,12 @@ const tr: Record<string, string> = {
   "insights.summaryDown": "Harcama geçen aya göre %{percent} azaldı.",
   "insights.summaryFlat": "Harcama geçen ayla yaklaşık aynı.",
   "insights.summaryNoPrevious": "Geçen ay harcama kaydı yok.",
+  "insights.categoryChanges": "Kategori değişimleri (geçen aya göre)",
+  "insights.anomalies": "Sıra dışı harcamalar",
+  "insights.anomalyNone": "Şimdilik sıra dışı harcama yok.",
+  "insights.anomalyNeedData": "En az üç ay kategori geçmişi gerekir.",
+  "insights.anomalyComparedToTypical": "olağan aylık harcamanın üzerinde",
+  "insights.noPreviousCategory": "Geçen ay harcama yok",
 
   "accounts.count": "Hesap: {count}",
   "accounts.empty": "Henüz hesap yok",
