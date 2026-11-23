@@ -3,8 +3,8 @@
  * Pure TypeScript, UI-independent. No native or network dependencies.
  */
 
-/** Account types. First three are budget accounts, last is a tracking account. */
-export type AccountType = "cash" | "bank" | "credit_card" | "loan";
+/** Account types. Budget accounts are listed in `BUDGET_ACCOUNT_TYPES`. */
+export type AccountType = "cash" | "bank" | "credit_card" | "loan" | "investment";
 
 /** Currency codes as ISO 4217 strings (e.g. "TRY", "USD"). */
 export type CurrencyCode = string;
@@ -34,6 +34,8 @@ export interface Account {
   statementDay?: number | null;
   /** Optional minimum payment day of month (1-31). */
   minPaymentDay?: number | null;
+  /** Current market value for investment accounts, in the account currency. */
+  currentValue?: number | null;
   note?: string | null;
   archived: boolean;
   createdAt: EpochMs;

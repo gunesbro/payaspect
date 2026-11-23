@@ -21,6 +21,7 @@ import {
   monthRange,
   spendingTrend,
   summarizeSpending,
+  updateAccountValue,
   updateCategory,
   updateTransaction,
   upsertBudget,
@@ -50,6 +51,7 @@ interface AppStoreValue {
   /** Reload after a mutation without showing the full-screen loading state. */
   reloadSilently: () => Promise<void>;
   addAccount: (account: Account) => Promise<void>;
+  setAccountValue: (id: string, currentValue: number | null) => Promise<void>;
   addCategory: (category: Category) => Promise<void>;
   updateCategory: (category: Category) => Promise<void>;
   addTransaction: (transaction: Transaction) => Promise<void>;
@@ -208,6 +210,15 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     [load],
   );
 
+  const setAccountValue = useCallback(
+    async (id: string, currentValue: number | null) => {
+      const db = await getDatabase();
+      await updateAccountValue(db, id, currentValue);
+      await load(false);
+    },
+    [load],
+  );
+
   const addCategory = useCallback(
     async (category: Category) => {
       const db = await getDatabase();
@@ -288,6 +299,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       refresh,
       reloadSilently,
       addAccount,
+      setAccountValue,
       addCategory,
       updateCategory: updateCategoryAction,
       addTransaction,
@@ -310,6 +322,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       refresh,
       reloadSilently,
       addAccount,
+      setAccountValue,
       addCategory,
       updateCategoryAction,
       addTransaction,

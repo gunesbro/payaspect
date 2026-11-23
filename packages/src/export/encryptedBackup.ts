@@ -11,6 +11,7 @@ import { insertAccount, listAccounts } from "../db/repositories/accounts.ts";
 import { listBudgets, upsertBudget } from "../db/repositories/budgets.ts";
 import { insertCategory, listAllCategories } from "../db/repositories/categories.ts";
 import { insertTransaction, listAllTransactions } from "../db/repositories/transactions.ts";
+import { ACCOUNT_TYPES } from "../domain/accounts.ts";
 import { validateTransaction } from "../domain/validation.ts";
 import type { Account, Budget, Category, Transaction } from "../domain/types.ts";
 
@@ -84,8 +85,14 @@ export function parseEncryptedBackupJson(json: string): EncryptedBackupData {
     requireString(value.id, "account.id");
     requireString(value.name, "account.name");
     requireString(value.currency, "account.currency");
-    if (!["cash", "bank", "credit_card", "loan"].includes(String(value.type))) {
+    if (!ACCOUNT_TYPES.includes(String(value.type) as Account["type"])) {
       throw new Error("Invalid backup: account.type");
+    }
+    if (
+      value.currentValue != null &&
+      (!Number.isFinite(value.currentValue) || Number(value.currentValue) < 0)
+    ) {
+      throw new Error("Invalid backup: account.currentValue");
     }
   }
 
