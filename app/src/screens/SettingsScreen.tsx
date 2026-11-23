@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { ScreenGate } from "../components/ScreenGate";
 import { CategoryManager } from "../components/CategoryManager";
 import { DataExport } from "../components/DataExport";
+import { EncryptedBackup } from "../components/EncryptedBackup";
 import {
   Card,
   Chip,
@@ -56,6 +57,8 @@ export function SettingsScreen() {
         </Card>
 
         <DataExport />
+
+        <EncryptedBackup />
 
         <Card>
           <SectionTitle>{t("settings.privacy")}</SectionTitle>

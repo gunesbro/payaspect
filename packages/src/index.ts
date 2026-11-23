@@ -32,3 +32,4 @@ export * from "./db/repositories/attachments.ts";
 export * from "./db/repositories/budgets.ts";
 export * from "./db/repositories/insights.ts";
 export * from "./export/exportData.ts";
+export * from "./export/encryptedBackup.ts";

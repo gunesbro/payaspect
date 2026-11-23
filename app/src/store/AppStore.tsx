@@ -47,6 +47,8 @@ interface AppStoreValue {
   budgets: Budget[];
   range: DateRange;
   refresh: () => Promise<void>;
+  /** Reload after a mutation without showing the full-screen loading state. */
+  reloadSilently: () => Promise<void>;
   addAccount: (account: Account) => Promise<void>;
   addCategory: (category: Category) => Promise<void>;
   updateCategory: (category: Category) => Promise<void>;
@@ -106,6 +108,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
   /** Manual refresh: shows the loading state. */
   const refresh = useCallback(() => load(true), [load]);
+  /** Silent reload for mutations (e.g. restore) that must not flash a spinner. */
+  const reloadSilently = useCallback(() => load(false), [load]);
 
   useEffect(() => {
     void load(true);
@@ -282,6 +286,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       budgets,
       range,
       refresh,
+      reloadSilently,
       addAccount,
       addCategory,
       updateCategory: updateCategoryAction,
@@ -303,6 +308,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       budgets,
       range,
       refresh,
+      reloadSilently,
       addAccount,
       addCategory,
       updateCategoryAction,
