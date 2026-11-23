@@ -16,6 +16,7 @@ import { splitStatements } from "./sql.ts";
  *
  * Supported subset:
  *   - CREATE TABLE [IF NOT EXISTS] (column defs, PRIMARY KEY, FOREIGN KEY)
+ *   - ALTER TABLE t ADD COLUMN x TYPE   (no-op: rows are schemaless objects)
  *   - CREATE [UNIQUE] INDEX [IF NOT EXISTS] ... ON t(col)   (no-op)
  *   - DROP TABLE [IF EXISTS]
  *   - INSERT INTO t (cols) VALUES (?, ...) [ON CONFLICT ... DO NOTHING|UPDATE]
@@ -299,6 +300,7 @@ type Statement =
       unique: string[][];
     }
   | { kind: "createIndex"; table: string }
+  | { kind: "alterTable"; name: string }
   | { kind: "dropTable"; name: string; ifExists: boolean }
   | {
       kind: "insert";
@@ -339,6 +341,8 @@ class Parser {
     switch (head) {
       case "CREATE":
         return this.parseCreate();
+      case "ALTER":
+        return this.parseAlter();
       case "INSERT":
         return this.parseInsert();
       case "SELECT":
@@ -361,6 +365,21 @@ class Parser {
       default:
         throw new Error(`Unsupported SQL statement starting with '${head ?? "<end>"}'`);
     }
+  }
+
+  /**
+   * Rows are schemaless JS objects here, so adding a column is a structural
+   * no-op: new rows simply carry the extra key when the repository writes it.
+   */
+  private parseAlter(): Statement {
+    this.expectWord("ALTER");
+    this.expectWord("TABLE");
+    const name = this.expectIdentifier();
+    this.expectWord("ADD");
+    this.consumeWord("COLUMN");
+    this.expectIdentifier(); // new column name
+    this.pos = this.tokens.length; // column type / constraints are irrelevant
+    return { kind: "alterTable", name };
   }
 
   private parseCreate(): Statement {
@@ -1237,6 +1256,11 @@ function execute(
 
     case "createIndex":
       return { changes: 0 };
+
+    case "alterTable": {
+      getTable(tables, stmt.name); // fail loudly if the table is missing
+      return { changes: 0 };
+    }
 
     case "dropTable": {
       if (!tables.has(stmt.name)) {

@@ -34,6 +34,7 @@ function makeAccount(): Account {
     creditLimit: null,
     statementDay: null,
     minPaymentDay: null,
+    currentValue: null,
     note: null,
     archived: false,
     createdAt: 0,
@@ -140,6 +141,37 @@ test("parse rejects corrupt, foreign and malformed backups", () => {
     parseEncryptedBackupJson(
       JSON.stringify({ ...valid, budgets: [{ ...makeBudget(), amount: 0 }] }),
     ),
+  );
+  assert.throws(() =>
+    parseEncryptedBackupJson(
+      JSON.stringify({ ...valid, accounts: [{ ...makeAccount(), type: "crypto" }] }),
+    ),
+  );
+  assert.throws(() =>
+    parseEncryptedBackupJson(
+      JSON.stringify({ ...valid, accounts: [{ ...makeAccount(), currentValue: -5 }] }),
+    ),
+  );
+});
+
+test("backup round-trips investment accounts with their current value", () => {
+  const investment: Account = {
+    ...makeAccount(),
+    id: "acc_inv",
+    name: "Stocks",
+    type: "investment",
+    isBudget: false,
+    currentValue: 1234.56,
+  };
+  const data = {
+    accounts: [makeAccount(), investment],
+    categories: [makeCategory()],
+    transactions: [makeTransaction()],
+    budgets: [makeBudget()],
+  };
+  assert.deepEqual(
+    parseEncryptedBackupJson(buildEncryptedBackupJson(data)),
+    data,
   );
 });
 

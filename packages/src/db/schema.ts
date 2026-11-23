@@ -11,7 +11,7 @@ export interface Migration {
   sql: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
 
 /**
  * Migration 1 — initial schema.
@@ -118,8 +118,18 @@ CREATE TABLE IF NOT EXISTS budgets (
 CREATE INDEX IF NOT EXISTS idx_budget_category ON budgets(category_id);
 `;
 
+/**
+ * Migration 4 — investment tracking value.
+ * Optional per-account market value, used only by tracking accounts. Existing
+ * rows keep a null value; no spending data is changed.
+ */
+const MIGRATION_4 = `
+ALTER TABLE accounts ADD COLUMN current_value REAL;
+`;
+
 export const MIGRATIONS: readonly Migration[] = [
   { version: 1, name: "initial_schema", sql: MIGRATION_1 },
   { version: 2, name: "attachments", sql: MIGRATION_2 },
   { version: 3, name: "budgets", sql: MIGRATION_3 },
+  { version: 4, name: "investment_value", sql: MIGRATION_4 },
 ];

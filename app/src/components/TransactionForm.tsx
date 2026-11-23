@@ -1,4 +1,5 @@
 import {
+  isBudgetAccount,
   KeywordClassifier,
   parseDate,
   validateTransaction,
@@ -68,6 +69,13 @@ export function TransactionForm({
   const editing = initial != null;
   const suggestion = editing ? null : draft;
 
+  // Tracking accounts (loan, investment) hold net worth, not everyday spend.
+  // They can still receive transfers, but never source an expense/income.
+  const sourceAccounts = useMemo(
+    () => accounts.filter((account) => isBudgetAccount(account.type)),
+    [accounts],
+  );
+
   const visibleCategories = useMemo(
     () => categories.filter((category) => !category.hidden && category.type === "expense"),
     [categories],
@@ -86,10 +94,10 @@ export function TransactionForm({
         : "",
   );
   const [currency, setCurrency] = useState(
-    initial?.currency ?? suggestion?.currency ?? accounts[0]?.currency ?? "TRY",
+    initial?.currency ?? suggestion?.currency ?? sourceAccounts[0]?.currency ?? "TRY",
   );
   const [accountId, setAccountId] = useState<string | null>(
-    initial?.accountId ?? accounts[0]?.id ?? null,
+    initial?.accountId ?? sourceAccounts[0]?.id ?? null,
   );
   const [toAccountId, setToAccountId] = useState<string | null>(
     initial?.toAccountId ?? null,
@@ -114,11 +122,11 @@ export function TransactionForm({
 
   // Keep the selection valid if accounts are added after the form mounts.
   useEffect(() => {
-    if (accountId && accounts.some((account) => account.id === accountId)) return;
-    const first = accounts[0];
+    if (accountId && sourceAccounts.some((account) => account.id === accountId)) return;
+    const first = sourceAccounts[0];
     setAccountId(first?.id ?? null);
     if (first) setCurrency(first.currency);
-  }, [accounts, accountId]);
+  }, [sourceAccounts, accountId]);
 
   const currencies = useMemo(
     () =>
@@ -221,7 +229,7 @@ export function TransactionForm({
 
   return (
     <>
-      {accounts.length === 0 ? (
+      {sourceAccounts.length === 0 ? (
         <Card>
           <Muted>{t("add.noAccounts")}</Muted>
         </Card>
@@ -263,7 +271,7 @@ export function TransactionForm({
 
         <Text style={styles.label}>{t("tx.account")}</Text>
         <View style={styles.wrap}>
-          {accounts.map((account) => (
+          {sourceAccounts.map((account) => (
             <Chip
               key={account.id}
               label={account.name}
@@ -339,7 +347,7 @@ export function TransactionForm({
         <PrimaryButton
           label={submitLabel}
           onPress={() => void handleSave()}
-          disabled={saving || accounts.length === 0}
+          disabled={saving || sourceAccounts.length === 0}
         />
         {extraActions}
       </Card>

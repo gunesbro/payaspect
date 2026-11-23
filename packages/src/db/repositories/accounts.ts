@@ -11,6 +11,7 @@ function rowToAccount(row: SQLRow): Account {
     creditLimit: row.credit_limit == null ? null : Number(row.credit_limit),
     statementDay: row.statement_day == null ? null : Number(row.statement_day),
     minPaymentDay: row.min_payment_day == null ? null : Number(row.min_payment_day),
+    currentValue: row.current_value == null ? null : Number(row.current_value),
     note: row.note == null ? null : String(row.note),
     archived: Number(row.archived) === 1,
     createdAt: Number(row.created_at),
@@ -21,8 +22,8 @@ export async function insertAccount(db: DatabaseDriver, a: Account): Promise<voi
   await db.run(
     `INSERT INTO accounts
        (id, name, type, currency, is_budget, credit_limit, statement_day,
-        min_payment_day, note, archived, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        min_payment_day, current_value, note, archived, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       a.id,
       a.name,
@@ -32,6 +33,7 @@ export async function insertAccount(db: DatabaseDriver, a: Account): Promise<voi
       a.creditLimit ?? null,
       a.statementDay ?? null,
       a.minPaymentDay ?? null,
+      a.currentValue ?? null,
       a.note ?? null,
       a.archived ? 1 : 0,
       a.createdAt,
@@ -60,4 +62,13 @@ export async function getAccountById(
 
 export async function archiveAccount(db: DatabaseDriver, id: string): Promise<void> {
   await db.run("UPDATE accounts SET archived = 1 WHERE id = ?", [id]);
+}
+
+/** Update an investment account's latest market value (null clears it). */
+export async function updateAccountValue(
+  db: DatabaseDriver,
+  id: string,
+  currentValue: number | null,
+): Promise<void> {
+  await db.run("UPDATE accounts SET current_value = ? WHERE id = ?", [currentValue, id]);
 }
