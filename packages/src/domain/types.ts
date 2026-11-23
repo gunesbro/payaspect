@@ -70,6 +70,16 @@ export interface Transaction {
   createdAt: EpochMs;
 }
 
+/** Monthly spending limit for one category in one currency. */
+export interface Budget {
+  id: string;
+  categoryId: string;
+  currency: CurrencyCode;
+  /** Positive monthly limit, in `currency`. */
+  amount: number;
+  createdAt: EpochMs;
+}
+
 /** Optional FX rate row (user-triggered only). */
 export interface Rate {
   base: CurrencyCode;

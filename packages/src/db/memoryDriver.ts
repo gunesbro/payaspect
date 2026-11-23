@@ -94,7 +94,7 @@ export class MemoryDatabaseDriver implements DatabaseDriver {
 
   /** Directly seed rows (bypasses SQL) for repository-level tests. */
   _setRows(table: string, rows: SQLRow[]): void {
-    this.tables.set(table, { primaryKey: [], rows: rows.map((r) => ({ ...r })) });
+    this.tables.set(table, { primaryKey: [], unique: [], rows: rows.map((r) => ({ ...r })) });
   }
 
   /** Snapshot of a table's rows, in insertion order. */
@@ -114,6 +114,8 @@ export class MemoryDatabaseDriver implements DatabaseDriver {
 
 interface Table {
   primaryKey: string[];
+  /** Table-level UNIQUE constraints, each an ordered list of columns. */
+  unique: string[][];
   rows: SQLRow[];
 }
 
@@ -122,6 +124,7 @@ function cloneTables(tables: Map<string, Table>): Map<string, Table> {
   for (const [name, table] of tables) {
     copy.set(name, {
       primaryKey: [...table.primaryKey],
+      unique: table.unique.map((cols) => [...cols]),
       rows: table.rows.map((r) => ({ ...r })),
     });
   }
@@ -131,7 +134,7 @@ function cloneTables(tables: Map<string, Table>): Map<string, Table> {
 function getTable(tables: Map<string, Table>, name: string, allowMissing = false): Table {
   const table = tables.get(name);
   if (!table) {
-    if (allowMissing) return { primaryKey: [], rows: [] };
+    if (allowMissing) return { primaryKey: [], unique: [], rows: [] };
     throw new Error(`no such table: ${name}`);
   }
   return table;
@@ -293,6 +296,7 @@ type Statement =
       ifNotExists: boolean;
       columns: ColumnDef[];
       primaryKey: string[];
+      unique: string[][];
     }
   | { kind: "createIndex"; table: string }
   | { kind: "dropTable"; name: string; ifExists: boolean }
@@ -380,6 +384,7 @@ class Parser {
 
     const columns: ColumnDef[] = [];
     const primaryKey: string[] = [];
+    const unique: string[][] = [];
 
     while (true) {
       const word = this.peekWord();
@@ -391,7 +396,15 @@ class Parser {
         while (this.consumePunct(",")) primaryKey.push(this.expectIdentifier());
         this.expectPunct(")");
         this.skipToSeparator();
-      } else if (word === "FOREIGN" || word === "UNIQUE" || word === "CHECK") {
+      } else if (word === "UNIQUE") {
+        this.pos += 1;
+        this.expectPunct("(");
+        const cols = [this.expectIdentifier()];
+        while (this.consumePunct(",")) cols.push(this.expectIdentifier());
+        this.expectPunct(")");
+        unique.push(cols);
+        this.skipToSeparator();
+      } else if (word === "FOREIGN" || word === "CHECK") {
         this.skipConstraint();
       } else {
         columns.push(this.parseColumnDef());
@@ -402,7 +415,7 @@ class Parser {
 
     this.expectPunct(")");
     this.expectEnd();
-    return { kind: "createTable", name, ifNotExists, columns, primaryKey };
+    return { kind: "createTable", name, ifNotExists, columns, primaryKey, unique };
   }
 
   private parseColumnDef(): ColumnDef {
@@ -1103,10 +1116,20 @@ function isAggregate(expr: Expr): boolean {
   return expr.kind === "call" && expr.name === "COUNT";
 }
 
-/** Composite primary-key fingerprint used for ON CONFLICT detection. */
-function primaryKeyOf(table: Table, row: SQLRow): string | null {
-  if (table.primaryKey.length === 0) return null;
-  return table.primaryKey.map((col) => String(row[col] ?? "\u0000null")).join("\u0001");
+/** Fingerprints for all uniqueness constraints, used for ON CONFLICT detection. */
+function conflictKeys(table: Table, row: SQLRow): string[] {
+  const keys: string[] = [];
+  if (table.primaryKey.length > 0) {
+    keys.push(
+      `pk:${table.primaryKey.map((col) => String(row[col] ?? "\u0000null")).join("\u0001")}`,
+    );
+  }
+  for (const cols of table.unique) {
+    // SQLite treats NULLs as distinct in UNIQUE constraints.
+    if (cols.some((col) => row[col] == null)) continue;
+    keys.push(`uq:${cols.map((col) => String(row[col])).join("\u0001")}`);
+  }
+  return keys;
 }
 
 function runSelect(
@@ -1208,7 +1231,7 @@ function execute(
         stmt.primaryKey.length > 0
           ? stmt.primaryKey
           : stmt.columns.filter((c) => c.primaryKey).map((c) => c.name);
-      tables.set(stmt.name, { primaryKey, rows: [] });
+      tables.set(stmt.name, { primaryKey, unique: stmt.unique, rows: [] });
       return { changes: 0 };
     }
 
@@ -1244,15 +1267,16 @@ function execute(
         row[col] = values[index] ?? null;
       });
 
-      const key = primaryKeyOf(table, row);
+      const keys = conflictKeys(table, row);
       let conflictRow: SQLRow | null = null;
-      if (key !== null) {
-        conflictRow = table.rows.find((r) => primaryKeyOf(table, r) === key) ?? null;
+      for (const key of keys) {
+        conflictRow = table.rows.find((r) => conflictKeys(table, r).includes(key)) ?? null;
+        if (conflictRow) break;
       }
 
       if (conflictRow !== null) {
         if (stmt.onConflict === null) {
-          throw new Error(`UNIQUE constraint failed: ${stmt.table}.${table.primaryKey.join(", ")}`);
+          throw new Error(`UNIQUE constraint failed: ${stmt.table}`);
         }
         if (stmt.onConflict.action === "nothing") return { changes: 0 };
         const conflictEnv: Env = { row: conflictRow, table: null, excluded: row };

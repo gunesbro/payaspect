@@ -8,12 +8,14 @@ import {
   type ReactNode,
 } from "react";
 import {
+  deleteBudget,
   deleteTransaction,
   insertAccount,
   insertCategory,
   insertTransaction,
   listAccounts,
   listAllCategories,
+  listBudgets,
   listTransactions,
   markRecurringTransactions,
   monthRange,
@@ -21,7 +23,9 @@ import {
   summarizeSpending,
   updateCategory,
   updateTransaction,
+  upsertBudget,
   type Account,
+  type Budget,
   type Category,
   type DateRange,
   type SpendingSummary,
@@ -40,6 +44,7 @@ interface AppStoreValue {
   transactions: Transaction[];
   summary: SpendingSummary | null;
   trend: SpendingTrend | null;
+  budgets: Budget[];
   range: DateRange;
   refresh: () => Promise<void>;
   addAccount: (account: Account) => Promise<void>;
@@ -48,6 +53,8 @@ interface AppStoreValue {
   addTransaction: (transaction: Transaction) => Promise<void>;
   updateTransaction: (transaction: Transaction) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
+  setBudget: (budget: Budget) => Promise<void>;
+  removeBudget: (id: string) => Promise<void>;
   seedSampleData: () => Promise<void>;
 }
 
@@ -63,6 +70,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [summary, setSummary] = useState<SpendingSummary | null>(null);
   const [trend, setTrend] = useState<SpendingTrend | null>(null);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
   const [range, setRange] = useState<DateRange>(() => monthRange());
 
   const load = useCallback(async (showLoading: boolean) => {
@@ -70,7 +78,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     try {
       const db = await getDatabase();
       const nextRange = monthRange();
-      const [nextAccounts, nextCategories, nextTransactions, nextSummary, nextTrend] =
+      const [nextAccounts, nextCategories, nextTransactions, nextSummary, nextTrend, nextBudgets] =
         await Promise.all([
           listAccounts(db),
           listAllCategories(db),
@@ -78,6 +86,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           listTransactions(db, { limit: 100 }),
           summarizeSpending(db, nextRange),
           spendingTrend(db, { months: 6, reference: nextRange.from }),
+          listBudgets(db),
         ]);
 
       setRange(nextRange);
@@ -86,6 +95,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       setTransactions(nextTransactions);
       setSummary(nextSummary);
       setTrend(nextTrend);
+      setBudgets(nextBudgets);
       setError(null);
       setStatus("ready");
     } catch (cause) {
@@ -242,6 +252,24 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     [load],
   );
 
+  const setBudget = useCallback(
+    async (budget: Budget) => {
+      const db = await getDatabase();
+      await upsertBudget(db, budget);
+      await load(false);
+    },
+    [load],
+  );
+
+  const removeBudget = useCallback(
+    async (id: string) => {
+      const db = await getDatabase();
+      await deleteBudget(db, id);
+      await load(false);
+    },
+    [load],
+  );
+
   const value = useMemo<AppStoreValue>(
     () => ({
       status,
@@ -251,6 +279,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       transactions,
       summary,
       trend,
+      budgets,
       range,
       refresh,
       addAccount,
@@ -259,6 +288,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       addTransaction,
       updateTransaction: updateTransactionAction,
       deleteTransaction: deleteTransactionAction,
+      setBudget,
+      removeBudget,
       seedSampleData,
     }),
     [
@@ -269,6 +300,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       transactions,
       summary,
       trend,
+      budgets,
       range,
       refresh,
       addAccount,
@@ -277,6 +309,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       addTransaction,
       updateTransactionAction,
       deleteTransactionAction,
+      setBudget,
+      removeBudget,
       seedSampleData,
     ],
   );
