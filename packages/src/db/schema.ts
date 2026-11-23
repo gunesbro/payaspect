@@ -11,7 +11,7 @@ export interface Migration {
   sql: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 /**
  * Migration 1 — initial schema.
@@ -100,7 +100,26 @@ CREATE TABLE IF NOT EXISTS attachments (
 CREATE INDEX IF NOT EXISTS idx_attachment_tx ON attachments(transaction_id);
 `;
 
+/**
+ * Migration 3 — monthly budgets.
+ * One limit per category and currency; currencies are never mixed.
+ */
+const MIGRATION_3 = `
+CREATE TABLE IF NOT EXISTS budgets (
+  id TEXT PRIMARY KEY NOT NULL,
+  category_id TEXT NOT NULL,
+  currency TEXT NOT NULL,
+  amount REAL NOT NULL,
+  created_at INTEGER NOT NULL,
+  UNIQUE (category_id, currency),
+  FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_budget_category ON budgets(category_id);
+`;
+
 export const MIGRATIONS: readonly Migration[] = [
   { version: 1, name: "initial_schema", sql: MIGRATION_1 },
   { version: 2, name: "attachments", sql: MIGRATION_2 },
+  { version: 3, name: "budgets", sql: MIGRATION_3 },
 ];

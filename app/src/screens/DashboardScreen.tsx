@@ -1,4 +1,5 @@
 import { formatAmount, formatDate, type Locale, type Transaction } from "@payaspect/core";
+import { BudgetPanel } from "../components/BudgetPanel";
 import { ScreenGate } from "../components/ScreenGate";
 import { SpendingNarrative } from "../components/SpendingNarrative";
 import {
@@ -59,6 +60,8 @@ export function DashboardScreen() {
         </Card>
 
         {summary ? <SpendingNarrative summary={summary} trend={trend} /> : null}
+
+        <BudgetPanel />
 
         <Muted>{t("accounts.count", { count: accounts.length })}</Muted>
 
